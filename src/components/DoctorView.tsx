@@ -12,7 +12,7 @@ export default function DoctorView() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [dictationLang, setDictationLang] = useState<'ar-JO' | 'en-US'>('ar-JO');
+  const [dictationLang, setDictationLang] = useState<'ar-JO' | 'en-AE'>('ar-JO');
   const recognitionRef = useRef<any>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -476,7 +476,7 @@ export default function DoctorView() {
               </button>
               <button
                 type="button"
-                onClick={() => setDictationLang(l => l === 'ar-JO' ? 'en-US' : 'ar-JO')}
+                onClick={() => setDictationLang(l => l === 'ar-JO' ? 'en-AE' : 'ar-JO')}
                 className="absolute right-3 bottom-3 text-xs font-bold px-2 py-1.5 rounded-lg transition-colors hover:bg-emerald-50 bg-white shadow-sm border border-emerald-100"
                 style={{ color: '#4A6357', fontFamily: "'IBM Plex Sans Arabic'" }}
                 title="تغيير لغة الإملاء الصوتي"

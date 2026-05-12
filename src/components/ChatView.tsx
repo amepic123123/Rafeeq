@@ -14,7 +14,7 @@ export default function ChatView() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput]       = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const [dictationLang, setDictationLang] = useState<'ar-JO' | 'en-US'>('ar-JO');
+  const [dictationLang, setDictationLang] = useState<'ar-JO' | 'en-AE'>('ar-JO');
   const recognitionRef = useRef<any>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -184,7 +184,7 @@ export default function ChatView() {
           </button>
 
           <button
-            onClick={() => setDictationLang(l => l === 'ar-JO' ? 'en-US' : 'ar-JO')}
+            onClick={() => setDictationLang(l => l === 'ar-JO' ? 'en-AE' : 'ar-JO')}
             className="text-xs font-bold px-2 py-1 rounded-lg transition-colors hover:bg-gray-100"
             style={{ color: '#4A6357', fontFamily: "'IBM Plex Sans Arabic'" }}
             title="تغيير لغة الإملاء الصوتي"
