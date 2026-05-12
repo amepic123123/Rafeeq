@@ -97,12 +97,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         {/* Branding overlay */}
         <div className="absolute top-10 right-10 text-right fade-up-1">
           <div className="flex items-center gap-3 mb-2">
-            <div
-              className="w-11 h-11 rounded-2xl flex items-center justify-center text-white font-bold text-lg"
-              style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.2)' }}
-            >
-              ر
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="Rafeeq Logo"
+              className="w-14 h-14 object-contain rounded-2xl shadow-lg"
+            />
             <div>
               <div className="text-white font-bold text-lg" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>رفيق</div>
               <div className="text-white/50 text-xs" style={{ fontFamily: "'Inter'" }}>Powered by Hakeem</div>
@@ -157,12 +156,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
           {/* Mobile logo (hidden on desktop) */}
           <div className="flex items-center gap-3 mb-8 lg:hidden login-enter-1">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
-              style={{ background: 'linear-gradient(135deg, #2D6A4F, #52B788)' }}
-            >
-              ر
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="Rafeeq Logo"
+              className="w-12 h-12 object-contain rounded-xl shadow-md"
+            />
             <div>
               <div className="font-bold text-lg" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>رفيق</div>
               <div className="text-xs" style={{ color: '#8FA89B' }}>Powered by Hakeem</div>

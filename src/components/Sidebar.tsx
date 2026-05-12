@@ -48,12 +48,11 @@ export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-6 border-b border-white/30">
-        <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm"
-          style={{ background: 'linear-gradient(135deg, #2D6A4F, #52B788)' }}
-        >
-          ر
-        </div>
+        <img
+          src="/logo.jpg"
+          alt="Rafeeq Logo"
+          className="w-12 h-12 object-contain rounded-xl shadow-sm"
+        />
         <div>
           <div className="font-bold text-base" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>
             رفيق
