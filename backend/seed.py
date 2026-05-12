@@ -5,7 +5,13 @@ from app.models.user import User, RoleEnum
 from app.models.patient import PatientProfile, Condition, Medication, Allergy, LabResult
 from app.core.security import get_password_hash
 
+from app.models.base import Base
+
 async def seed_data():
+    # Automatically create tables if they don't exist
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
     async_session = async_sessionmaker(engine, expire_on_commit=False)
     
     async with async_session() as db:
