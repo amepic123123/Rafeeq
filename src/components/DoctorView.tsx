@@ -12,6 +12,7 @@ export default function DoctorView() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,31 +73,61 @@ export default function DoctorView() {
     }
 
     if (isRecording) {
-      return; // Handled by onend automatically if they stop talking, or we could keep a ref to manually stop.
+      // If already recording, stop it
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsRecording(false);
+      return;
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = 'ar-JO';
-    recognition.interimResults = false;
+    recognitionRef.current = recognition;
     
+    recognition.lang = 'ar-JO';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    
+    let currentFinalTranscript = symptoms;
+
     recognition.onstart = () => setIsRecording(true);
     
     recognition.onresult = (event: any) => {
-      let finalTranscript = '';
+      let interimTranscript = '';
+      let newFinalTranscript = '';
+      
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
+          newFinalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
         }
       }
-      if (finalTranscript) {
-        setSymptoms(prev => prev + (prev ? ' ' : '') + finalTranscript);
+      
+      if (newFinalTranscript) {
+        currentFinalTranscript += (currentFinalTranscript ? ' ' : '') + newFinalTranscript;
+        setSymptoms(currentFinalTranscript);
+      } else if (interimTranscript) {
+        // Optional: show interim text if needed, but for simplicity we append it dynamically
+        setSymptoms(currentFinalTranscript + (currentFinalTranscript ? ' ' : '') + interimTranscript);
       }
     };
     
-    recognition.onerror = () => setIsRecording(false);
-    recognition.onend = () => setIsRecording(false);
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsRecording(false);
+    };
     
-    recognition.start();
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+    
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error('Failed to start speech recognition:', e);
+      setIsRecording(false);
+    }
   };
 
   if (!selectedPatient) {
