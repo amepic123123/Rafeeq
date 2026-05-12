@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 
 interface LoginPageProps {
-  onLogin: () => void;
+  onLogin: (role: 'patient' | 'doctor') => void;
 }
 
 /* Deterministic particles — generated once, stable across SSR/client */
@@ -31,13 +31,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     { icon: '👨‍👩‍👧‍👦', text: 'متابعة صحة العائلة بالكامل' },
   ], []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent, role: 'patient' | 'doctor' = 'patient') => {
     e.preventDefault();
     setIsLoading(true);
     // Simulate login — replace with real API call
     setTimeout(() => {
       setIsLoading(false);
-      onLogin();
+      onLogin(role);
     }, 1500);
   };
 
@@ -371,6 +371,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <p className="text-xs" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>
               ليس لديك حساب؟{' '}
               <button className="font-semibold" style={{ color: '#2D6A4F' }}>سجّل عبر حكيم</button>
+            </p>
+            <p className="text-xs mt-2" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>
+              أنت طبيب؟{' '}
+              <button type="button" onClick={(e) => handleSubmit(e, 'doctor')} className="font-semibold" style={{ color: '#D4A96A' }}>دخول كطبيب (تجريبي)</button>
             </p>
             <div className="flex items-center justify-center gap-4 mt-4">
               <span className="text-[10px]" style={{ color: '#B7E4C7' }}>🔐 HIPAA Compliant</span>

@@ -12,8 +12,10 @@ import FamilyView from '@/components/FamilyView';
 
 export type View = 'dashboard' | 'chat' | 'labs' | 'doctor' | 'family';
 
+export type UserRole = 'patient' | 'doctor';
+
 export default function RafeeqApp() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [activeView, setActiveView] = useState<View>('dashboard');
   const [caregiverMode, setCaregiverMode] = useState(false);
 
@@ -22,8 +24,11 @@ export default function RafeeqApp() {
   }, []);
 
   // ── Login Gate ──────────────────────────────────────────────────
-  if (!isLoggedIn) {
-    return <LoginPage onLogin={() => setIsLoggedIn(true)} />;
+  if (!userRole) {
+    return <LoginPage onLogin={(role) => {
+      setUserRole(role);
+      setActiveView(role === 'doctor' ? 'doctor' : 'dashboard');
+    }} />;
   }
 
   // ── Main App Shell ─────────────────────────────────────────────
@@ -33,7 +38,7 @@ export default function RafeeqApp() {
       style={{ background: 'var(--bg)' }}
     >
       {/* Frosted Glass Sidebar */}
-      <Sidebar activeView={activeView} onViewChange={handleViewChange} />
+      <Sidebar activeView={activeView} onViewChange={handleViewChange} userRole={userRole} />
 
       {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
@@ -41,6 +46,7 @@ export default function RafeeqApp() {
           activeView={activeView}
           caregiverMode={caregiverMode}
           onCaregiverToggle={() => setCaregiverMode(v => !v)}
+          userRole={userRole}
         />
 
         <main className="flex-1 overflow-auto">

@@ -5,6 +5,7 @@ import { View } from './RafeeqApp';
 interface SidebarProps {
   activeView: View;
   onViewChange: (view: View) => void;
+  userRole: 'patient' | 'doctor';
 }
 
 const navItems: { id: View; iconSvg: string; labelAr: string; labelEn: string }[] = [
@@ -40,7 +41,7 @@ const navItems: { id: View; iconSvg: string; labelAr: string; labelEn: string }[
   },
 ];
 
-export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
+export default function Sidebar({ activeView, onViewChange, userRole }: SidebarProps) {
   return (
     <aside
       className="glass-sidebar flex flex-col w-64 shrink-0 h-full z-20"
@@ -66,10 +67,12 @@ export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {navItems.map(item => (
-          <button
-            key={item.id}
-            id={`nav-${item.id}`}
+        {navItems.map(item => {
+          if (item.id === 'doctor' && userRole !== 'doctor') return null;
+          return (
+            <button
+              key={item.id}
+              id={`nav-${item.id}`}
             onClick={() => onViewChange(item.id)}
             className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
               activeView === item.id
@@ -88,8 +91,9 @@ export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
                 {item.labelEn}
               </div>
             </div>
-          </button>
-        ))}
+            </button>
+          );
+        })}
       </nav>
 
       {/* Patient card */}

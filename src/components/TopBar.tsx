@@ -15,9 +15,10 @@ interface TopBarProps {
   activeView: View;
   caregiverMode: boolean;
   onCaregiverToggle: () => void;
+  userRole: 'patient' | 'doctor';
 }
 
-export default function TopBar({ activeView, caregiverMode, onCaregiverToggle }: TopBarProps) {
+export default function TopBar({ activeView, caregiverMode, onCaregiverToggle, userRole }: TopBarProps) {
   const [searchFocused, setSearchFocused] = useState(false);
   const title = viewTitles[activeView];
 
@@ -84,21 +85,23 @@ export default function TopBar({ activeView, caregiverMode, onCaregiverToggle }:
         <span>Sanad ID ✓</span>
       </div>
 
-      {/* Caregiver mode toggle */}
-      <button
-        id="caregiver-toggle"
-        onClick={onCaregiverToggle}
-        title="Caregiver Mode"
-        className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-300"
-        style={{
-          background: caregiverMode ? 'rgba(212,169,106,0.15)' : 'rgba(45,106,79,0.06)',
-          color: caregiverMode ? '#A07C3A' : '#4A6357',
-          border: caregiverMode ? '1px solid rgba(212,169,106,0.3)' : '1px solid transparent',
-          fontFamily: "'IBM Plex Sans Arabic'",
-        }}
-      >
-        {caregiverMode ? '🌿 مراقب' : '🏥 طبيب'}
-      </button>
+      {/* Caregiver mode toggle (Doctor only) */}
+      {userRole === 'doctor' && (
+        <button
+          id="caregiver-toggle"
+          onClick={onCaregiverToggle}
+          title="Caregiver Mode"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-300"
+          style={{
+            background: caregiverMode ? 'rgba(212,169,106,0.15)' : 'rgba(45,106,79,0.06)',
+            color: caregiverMode ? '#A07C3A' : '#4A6357',
+            border: caregiverMode ? '1px solid rgba(212,169,106,0.3)' : '1px solid transparent',
+            fontFamily: "'IBM Plex Sans Arabic'",
+          }}
+        >
+          {caregiverMode ? '🌿 مراقب' : '🏥 طبيب'}
+        </button>
+      )}
 
       {/* Profile switcher */}
       <button
