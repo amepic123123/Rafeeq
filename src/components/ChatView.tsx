@@ -14,6 +14,7 @@ export default function ChatView() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput]       = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Seed messages from API once loaded
@@ -27,8 +28,78 @@ export default function ChatView() {
 
   const handleSend = async (textAr: string) => {
     if (!textAr.trim() || isSending) return;
+    
+    if (isRecording && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    }
+
     setInput('');
     await send(textAr, newMsgs => setMessages(prev => [...prev, ...newMsgs]));
+  };
+
+  const handleMicrophoneClick = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('عذراً، متصفحك لا يدعم خاصية الإملاء الصوتي.');
+      return;
+    }
+
+    if (isRecording) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsRecording(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+    
+    recognition.lang = 'ar-JO';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    
+    let currentFinalTranscript = input;
+
+    recognition.onstart = () => setIsRecording(true);
+    
+    recognition.onresult = (event: any) => {
+      let interimTranscript = '';
+      let newFinalTranscript = '';
+      
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          newFinalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+      
+      if (newFinalTranscript) {
+        currentFinalTranscript += (currentFinalTranscript ? ' ' : '') + newFinalTranscript;
+        setInput(currentFinalTranscript);
+      } else if (interimTranscript) {
+        setInput(currentFinalTranscript + (currentFinalTranscript ? ' ' : '') + interimTranscript);
+      }
+    };
+    
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      if (event.error === 'network') {
+        alert('حدث خطأ في الاتصال بخوادم التعرف على الصوت (Network Error). يرجى التحقق من اتصالك بالإنترنت أو إيقاف الـ VPN، أو استخدام الكتابة اليدوية بدلاً من ذلك.');
+      }
+      setIsRecording(false);
+    };
+    
+    recognition.onend = () => setIsRecording(false);
+    
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error('Failed to start speech recognition:', e);
+      setIsRecording(false);
+    }
   };
 
   return (
@@ -96,7 +167,7 @@ export default function ChatView() {
       <div className="px-6 pb-6 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.4)' }}>
         <div className="flex items-center gap-3 px-4 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(82,183,136,0.25)', boxShadow: '0 4px 20px rgba(45,106,79,0.08)' }}>
           {/* Voice button */}
-          <button id="voice-input-btn" onClick={() => setIsRecording(r => !r)} className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all" style={{ background: isRecording ? '#EF4444' : 'rgba(45,106,79,0.08)', color: isRecording ? 'white' : '#2D6A4F' }}>
+          <button id="voice-input-btn" onClick={handleMicrophoneClick} className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all" style={{ background: isRecording ? '#EF4444' : 'rgba(45,106,79,0.08)', color: isRecording ? 'white' : '#2D6A4F' }}>
             {isRecording ? (
               <div className="flex items-end gap-0.5 h-4">
                 {[4, 7, 5, 8, 4, 6, 3].map((h, i) => <div key={i} className="wave-bar w-0.5 rounded-full bg-white" style={{ height: h * 2, animationDelay: `${i * 0.1}s` }} />)}
