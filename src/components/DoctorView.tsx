@@ -115,6 +115,9 @@ export default function DoctorView() {
     
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
+      if (event.error === 'network') {
+        alert('حدث خطأ في الاتصال بخوادم التعرف على الصوت (Network Error). يرجى التحقق من اتصالك بالإنترنت أو إيقاف الـ VPN، أو استخدام الكتابة اليدوية بدلاً من ذلك.');
+      }
       setIsRecording(false);
     };
     
