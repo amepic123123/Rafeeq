@@ -87,7 +87,7 @@ export default function PatientDashboard({ caregiverMode }: PatientDashboardProp
         {/* Health Score Gauge */}
         {lScore
           ? <div className="glass-card p-6 flex items-center justify-center"><Skeleton h="h-40" className="w-40 rounded-full" /></div>
-          : <HealthScore scoreData={scoreData!} caregiverMode={caregiverMode} />
+          : scoreData ? <HealthScore scoreData={scoreData} caregiverMode={caregiverMode} /> : <div className="glass-card p-6 flex items-center justify-center text-sm font-bold text-red-500" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>تعذر تحميل بيانات النسبة الصحية (API غير متاح)</div>
         }
       </div>
 
