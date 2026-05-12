@@ -2,10 +2,12 @@
 
 import { useRef, useCallback, useState } from 'react';
 import { useRiskFlags, useHakeemHistory, usePrescriptionAnalysis, Skeleton, usePatient, useHealthScore } from '@/lib/hooks';
+import LabsView from '@/components/LabsView';
 
 export default function DoctorView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
+  const [innerTab, setInnerTab] = useState<'overview' | 'labs'>('overview');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -42,6 +44,7 @@ export default function DoctorView() {
   const handleBack = () => {
     setSelectedPatient(null);
     setSearchQuery('');
+    setInnerTab('overview');
     reset();
   };
 
@@ -158,10 +161,38 @@ export default function DoctorView() {
         </div>
       </div>
 
-      {/* Upload + Risk */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 fade-up-2">
+      {/* Inner Tabs */}
+      <div className="flex items-center gap-4 border-b border-emerald-100 pb-2 fade-up-2">
+        <button
+          onClick={() => setInnerTab('overview')}
+          className={`px-4 py-2 font-semibold text-sm rounded-lg transition-all ${
+            innerTab === 'overview'
+              ? 'bg-emerald-50 text-emerald-800'
+              : 'text-gray-500 hover:bg-gray-50'
+          }`}
+          style={{ fontFamily: "'IBM Plex Sans Arabic'" }}
+        >
+          النظرة العامة والوصفات
+        </button>
+        <button
+          onClick={() => setInnerTab('labs')}
+          className={`px-4 py-2 font-semibold text-sm rounded-lg transition-all ${
+            innerTab === 'labs'
+              ? 'bg-emerald-50 text-emerald-800'
+              : 'text-gray-500 hover:bg-gray-50'
+          }`}
+          style={{ fontFamily: "'IBM Plex Sans Arabic'" }}
+        >
+          التحاليل المخبرية
+        </button>
+      </div>
 
-        {/* OCR Upload */}
+      {innerTab === 'overview' ? (
+        <>
+          {/* Upload + Risk */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 fade-up-2">
+
+            {/* OCR Upload */}
         <div className="glass-card p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>📄 رفع الوصفة الطبية</h3>
@@ -300,8 +331,12 @@ export default function DoctorView() {
               )}
             </div>
           </div>
+        </>
+      ) : (
+        <div className="fade-up-2 -mx-6">
+          <LabsView patientId={selectedPatient} />
         </div>
-      </div>
+      )}
     </div>
   );
 }

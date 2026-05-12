@@ -33,7 +33,7 @@ export default function RafeeqApp() {
   // Derive active view from URL
   const pathSegment = pathname?.split('/')[1] || '';
   const validViews = userRole === 'doctor' 
-    ? ['labs', 'doctor'] 
+    ? ['doctor'] 
     : ['dashboard', 'chat', 'labs', 'family'];
   const isValidView = validViews.includes(pathSegment);
   const defaultView = userRole === 'doctor' ? 'doctor' : 'dashboard';

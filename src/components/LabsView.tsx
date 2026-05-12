@@ -6,7 +6,11 @@ import {
   CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts';
 
-const PATIENT_ID = 'JO-2026-KHL-4821';
+interface LabsViewProps {
+  patientId?: string;
+}
+
+const DEFAULT_PATIENT_ID = 'JO-2026-KHL-4821';
 
 const CustomTooltip = ({ active, payload, label }: {
   active?: boolean;
@@ -36,10 +40,11 @@ const timelineSlots = [
   { label: 'النوم',    icon: '😴', time: '23:30', color: '#4A6357', type: 'sleep'      },
 ];
 
-export default function LabsView() {
-  const { data: hba1cData, loading: lHba1c } = useHbA1cHistory(PATIENT_ID, 7);
-  const { data: bpData,    loading: lBp }    = useBloodPressureHistory(PATIENT_ID, 7);
-  const { data: medications, loading: lMeds } = useMedications(PATIENT_ID);
+export default function LabsView({ patientId }: LabsViewProps = {}) {
+  const targetId = patientId || DEFAULT_PATIENT_ID;
+  const { data: hba1cData, loading: lHba1c } = useHbA1cHistory(targetId, 7);
+  const { data: bpData,    loading: lBp }    = useBloodPressureHistory(targetId, 7);
+  const { data: medications, loading: lMeds } = useMedications(targetId);
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto" dir="rtl">

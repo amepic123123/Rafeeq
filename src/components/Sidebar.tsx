@@ -68,7 +68,7 @@ export default function Sidebar({ activeView, onViewChange, userRole }: SidebarP
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navItems.map(item => {
-          if (userRole === 'doctor' && !['labs', 'doctor'].includes(item.id)) return null;
+          if (userRole === 'doctor' && item.id !== 'doctor') return null;
           if (userRole === 'patient' && item.id === 'doctor') return null;
           return (
             <button
