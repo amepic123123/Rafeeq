@@ -6,7 +6,7 @@
 > **Types:** `src/lib/types.ts`
 
 This document specifies every HTTP endpoint that the Rafeeq frontend calls.  
-The frontend uses a **backend-first, mock-fallback** pattern: if `NEXT_PUBLIC_API_URL` is set and the request succeeds, live data is used. If it is unset or the request fails, the UI silently falls back to the mock data in `src/lib/data.ts`.
+The frontend uses a **strict backend-first** pattern. It no longer contains hardcoded mock data. If `NEXT_PUBLIC_API_URL` is unset or the request fails, the application will show an error or a loading state. The backend MUST implement these endpoints for the application to function.
 
 ---
 
@@ -36,7 +36,7 @@ Set this in `.env.local` (copy from `.env.example`).
 
 | Field | Type | Notes |
 |---|---|---|
-| `success` | `boolean` | `false` triggers the mock fallback + console warning |
+| `success` | `boolean` | `false` triggers an error |
 | `data` | `T` | The typed payload (see per-endpoint schemas below) |
 | `message` | `string \| null` | Optional error/info message |
 | `timestamp` | `string` | ISO 8601 server timestamp |
