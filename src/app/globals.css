@@ -1,26 +1,260 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-emerald-deep: #2D6A4F;
+  --color-emerald-mid: #40916C;
+  --color-teal-muted: #52B788;
+  --color-teal-light: #74C69D;
+  --color-teal-pale: #B7E4C7;
+  --color-bone: #F8F4F0;
+  --color-bone-dark: #EDE8E3;
+  --color-surface: #FFFFFF;
+  --color-surface-glass: rgba(255,255,255,0.72);
+  --color-text-primary: #1A2B22;
+  --color-text-secondary: #4A6357;
+  --color-text-muted: #8FA89B;
+  --color-risk-red: #EF4444;
+  --color-risk-yellow: #F59E0B;
+  --color-risk-green: #22C55E;
+  --color-caregiver-bg: #FDF6ED;
+  --color-caregiver-accent: #D4A96A;
+  --radius-card: 24px;
+  --radius-pill: 9999px;
+  --shadow-glass: 0 8px 32px rgba(45,106,79,0.12);
+  --shadow-card: 0 2px 16px rgba(45,106,79,0.08);
+  --font-arabic: 'IBM Plex Sans Arabic', sans-serif;
+  --font-latin: 'Inter', sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --bg: #F8F4F0;
+  --fg: #1A2B22;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Inter', 'IBM Plex Sans Arabic', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* RTL Support */
+[dir="rtl"] {
+  font-family: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
+  text-align: right;
+}
+
+/* Caregiver mode */
+.caregiver-mode {
+  --bg: #FDF6ED;
+  --fg: #3D2B1A;
+}
+
+/* ── Glassmorphism card ── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(45, 106, 79, 0.10);
+}
+
+.glass-sidebar {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border-right: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 4px 0 24px rgba(45, 106, 79, 0.08);
+}
+
+/* ── AI Orb ── */
+@keyframes orb-breathe {
+  0%, 100% {
+    border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
+    box-shadow:
+      0 0 60px rgba(82, 183, 136, 0.5),
+      0 0 120px rgba(45, 106, 79, 0.3),
+      inset 0 0 40px rgba(116, 198, 157, 0.3);
+    transform: scale(1);
+  }
+  33% {
+    border-radius: 70% 30% 50% 50% / 40% 70% 30% 60%;
+    box-shadow:
+      0 0 80px rgba(82, 183, 136, 0.6),
+      0 0 160px rgba(45, 106, 79, 0.4),
+      inset 0 0 50px rgba(116, 198, 157, 0.4);
+    transform: scale(1.04);
+  }
+  66% {
+    border-radius: 40% 60% 30% 70% / 60% 40% 70% 30%;
+    box-shadow:
+      0 0 70px rgba(82, 183, 136, 0.55),
+      0 0 140px rgba(45, 106, 79, 0.35),
+      inset 0 0 45px rgba(116, 198, 157, 0.35);
+    transform: scale(0.97);
+  }
+}
+
+.ai-orb {
+  background: radial-gradient(ellipse at 35% 35%, #74C69D, #52B788 40%, #2D6A4F 80%, #1B4332);
+  animation: orb-breathe 4s ease-in-out infinite;
+}
+
+/* ── Audio waveform ── */
+@keyframes wave-bar {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+.wave-bar {
+  animation: wave-bar 1.2s ease-in-out infinite;
+  transform-origin: bottom;
+}
+
+/* ── Scanning animation ── */
+@keyframes scan-line {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.scan-line {
+  animation: scan-line 2.5s ease-in-out infinite;
+}
+
+/* ── Pulse dot ── */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+.pulse-ring {
+  animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* ── Gradient text ── */
+.gradient-text {
+  background: linear-gradient(135deg, #2D6A4F, #52B788);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Hakeem badge ── */
+.hakeem-badge {
+  background: linear-gradient(135deg, #2D6A4F, #40916C);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  letter-spacing: 0.03em;
+}
+
+/* ── Traffic light ── */
+.risk-red    { background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA; }
+.risk-yellow { background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A; }
+.risk-green  { background: #DCFCE7; color: #16A34A; border: 1px solid #BBF7D0; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #B7E4C7; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #74C69D; }
+
+/* ── Tab active indicator ── */
+.nav-active {
+  background: linear-gradient(135deg, rgba(45,106,79,0.12), rgba(82,183,136,0.08));
+  color: #2D6A4F;
+  border-left: 3px solid #2D6A4F;
+}
+
+/* ── Prompt pill ── */
+.prompt-pill {
+  background: rgba(82, 183, 136, 0.10);
+  border: 1px solid rgba(82, 183, 136, 0.25);
+  color: #2D6A4F;
+  border-radius: 9999px;
+  padding: 6px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.prompt-pill:hover {
+  background: rgba(82, 183, 136, 0.22);
+  border-color: rgba(45, 106, 79, 0.4);
+  transform: translateY(-1px);
+}
+
+/* ── Upload zone ── */
+.upload-zone {
+  border: 2px dashed rgba(82, 183, 136, 0.4);
+  border-radius: 20px;
+  background: rgba(183, 228, 199, 0.08);
+  transition: all 0.3s ease;
+}
+
+.upload-zone:hover,
+.upload-zone.drag-over {
+  border-color: #52B788;
+  background: rgba(82, 183, 136, 0.12);
+  box-shadow: 0 0 0 4px rgba(82, 183, 136, 0.1);
+}
+
+/* ── Timeline dot ── */
+.timeline-dot-iftar  { background: #F97316; box-shadow: 0 0 0 4px rgba(249,115,22,0.2); }
+.timeline-dot-suhoor { background: #8B5CF6; box-shadow: 0 0 0 4px rgba(139,92,246,0.2); }
+.timeline-dot-med    { background: #2D6A4F; box-shadow: 0 0 0 4px rgba(45,106,79,0.2); }
+
+/* ── Chat bubble ── */
+.chat-bubble-user {
+  background: linear-gradient(135deg, #2D6A4F, #40916C);
+  color: white;
+  border-radius: 18px 18px 4px 18px;
+}
+
+.chat-bubble-ai {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 18px 18px 18px 4px;
+  color: #1A2B22;
+}
+
+/* ── Health score gauge ── */
+@keyframes gauge-fill {
+  from { stroke-dashoffset: 280; }
+  to   { stroke-dashoffset: var(--gauge-offset); }
+}
+
+.gauge-arc {
+  animation: gauge-fill 1.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ── Fade-in-up ── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up { animation: fade-up 0.5s ease forwards; }
+.fade-up-1 { animation: fade-up 0.5s 0.05s ease both; }
+.fade-up-2 { animation: fade-up 0.5s 0.10s ease both; }
+.fade-up-3 { animation: fade-up 0.5s 0.15s ease both; }
+.fade-up-4 { animation: fade-up 0.5s 0.20s ease both; }
+.fade-up-5 { animation: fade-up 0.5s 0.25s ease both; }
