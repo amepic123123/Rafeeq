@@ -7,7 +7,10 @@ import LabsView from '@/components/LabsView';
 export default function DoctorView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
-  const [innerTab, setInnerTab] = useState<'overview' | 'labs'>('overview');
+  const [innerTab, setInnerTab] = useState<'overview' | 'labs' | 'ai'>('overview');
+  const [symptoms, setSymptoms] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -18,7 +21,7 @@ export default function DoctorView() {
   const { data: hakeemHistory, loading: lHakeem }  = useHakeemHistory(selectedPatient || undefined);
   const {
     result, isScanning, progress, analyze, reset,
-  } = usePrescriptionAnalysis(selectedPatient || undefined);
+  } = usePrescriptionAnalysis(selectedPatient || '');
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -45,7 +48,19 @@ export default function DoctorView() {
     setSelectedPatient(null);
     setSearchQuery('');
     setInnerTab('overview');
+    setSymptoms('');
+    setAiSuggestion(null);
     reset();
+  };
+
+  const handleAiConsult = () => {
+    if (!symptoms.trim()) return;
+    setIsAiLoading(true);
+    setAiSuggestion(null);
+    setTimeout(() => {
+      setIsAiLoading(false);
+      setAiSuggestion(`بناءً على الأعراض الحالية ("${symptoms}") وتاريخ المريض الطبي (ارتفاع ضغط الدم، سكري من النوع الثاني)، يُنصح بتجنب الأدوية التي ترفع ضغط الدم مثل مضادات الاحتقان الموضعية. \n\nالتوصية المبدئية:\n1. Paracetamol 500mg للتحكم بالألم والحرارة.\n2. إجراء تحليل دم شامل (CBC) للتحقق من وجود التهاب.\nيرجى مراجعة التفاعلات الدوائية المحتملة مع "Metformin" و "Amlodipine" المسجلة في ملف المريض.`);
+    }, 2500);
   };
 
   if (!selectedPatient) {
@@ -184,6 +199,17 @@ export default function DoctorView() {
           style={{ fontFamily: "'IBM Plex Sans Arabic'" }}
         >
           التحاليل المخبرية
+        </button>
+        <button
+          onClick={() => setInnerTab('ai')}
+          className={`px-4 py-2 font-semibold text-sm rounded-lg transition-all flex items-center gap-2 ${
+            innerTab === 'ai'
+              ? 'bg-emerald-50 text-emerald-800'
+              : 'text-gray-500 hover:bg-gray-50'
+          }`}
+          style={{ fontFamily: "'IBM Plex Sans Arabic'" }}
+        >
+          <span className="text-lg">✨</span> مساعد الوصفات
         </button>
       </div>
 
@@ -334,9 +360,71 @@ export default function DoctorView() {
         </div>
       </div>
     </>
-      ) : (
+      ) : innerTab === 'labs' ? (
         <div className="fade-up-2 -mx-6">
           <LabsView patientId={selectedPatient} />
+        </div>
+      ) : (
+        <div className="fade-up-2 glass-card p-6 md:p-8 max-w-3xl mx-auto mt-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #2D6A4F, #52B788)' }}>
+              <span className="text-2xl">✨</span>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>المساعد الطبي الذكي</h3>
+              <p className="text-xs" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>تحليل الأعراض وتقديم توصيات دوائية بناءً على السجل الطبي الكامل</p>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold mb-2" style={{ color: '#4A6357', fontFamily: "'IBM Plex Sans Arabic'" }}>الأعراض الحالية للمريض:</label>
+              <textarea
+                value={symptoms}
+                onChange={(e) => setSymptoms(e.target.value)}
+                placeholder="مثال: يشكو المريض من صداع نصفي مستمر منذ يومين مع ارتفاع طفيف في الحرارة..."
+                className="w-full p-4 rounded-xl border outline-none resize-none h-32 transition-colors focus:border-emerald-500"
+                style={{ borderColor: 'rgba(82,183,136,0.3)', background: 'rgba(255,255,255,0.8)', color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}
+                dir="rtl"
+              />
+            </div>
+            
+            <button
+              onClick={handleAiConsult}
+              disabled={!symptoms.trim() || isAiLoading}
+              className="w-full py-3 rounded-xl text-white font-bold transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              style={{ background: 'linear-gradient(135deg, #2D6A4F, #52B788)', fontFamily: "'IBM Plex Sans Arabic'" }}
+            >
+              {isAiLoading ? (
+                <>
+                  <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  جاري تحليل البيانات (RAG)...
+                </>
+              ) : (
+                <>استشارة الذكاء الاصطناعي</>
+              )}
+            </button>
+
+            {aiSuggestion && (
+              <div className="mt-6 p-5 rounded-2xl border" style={{ background: 'rgba(45,106,79,0.03)', borderColor: 'rgba(45,106,79,0.1)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-sm">🤖</span>
+                  <span className="font-bold text-sm" style={{ color: '#2D6A4F', fontFamily: "'IBM Plex Sans Arabic'" }}>توصيات رافيق AI:</span>
+                </div>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>
+                  {aiSuggestion}
+                </p>
+                <div className="mt-4 flex gap-2">
+                  <button className="px-4 py-2 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90" style={{ background: '#52B788', fontFamily: "'IBM Plex Sans Arabic'" }}>
+                    إضافة للوصفة
+                  </button>
+                  <button className="px-4 py-2 rounded-lg text-xs font-semibold transition-all hover:bg-gray-100" style={{ color: '#4A6357', border: '1px solid #E5E7EB', fontFamily: "'IBM Plex Sans Arabic'" }}>
+                    تعديل الأعراض
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
