@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { View } from './RafeeqApp';
+import { usePatient } from '@/lib/hooks';
 
 const viewTitles: Record<View, { ar: string; en: string }> = {
   dashboard: { ar: 'لوحة المريض', en: 'Patient Dashboard' },
@@ -20,6 +21,7 @@ interface TopBarProps {
 
 export default function TopBar({ activeView, caregiverMode, onCaregiverToggle, userRole }: TopBarProps) {
   const [searchFocused, setSearchFocused] = useState(false);
+  const { data: patient } = usePatient();
   const title = viewTitles[activeView];
 
   return (
@@ -114,7 +116,7 @@ export default function TopBar({ activeView, caregiverMode, onCaregiverToggle, u
         className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold transition-transform hover:scale-110 shrink-0"
         style={{ background: userRole === 'doctor' ? 'linear-gradient(135deg, #A07C3A, #D4A96A)' : 'linear-gradient(135deg, #2D6A4F, #52B788)' }}
       >
-        {userRole === 'doctor' ? 'ط' : 'خ'}
+        {userRole === 'doctor' ? 'ط' : (patient?.nameAr ? patient.nameAr[0] : 'ج')}
       </button>
     </header>
   );

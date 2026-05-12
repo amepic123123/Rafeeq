@@ -251,6 +251,10 @@ async def get_family(patientId: str):
 @router.get("/{patientId}/family/summary")
 async def get_family_summary(patientId: str):
     return success_response({
+        "avgHealthScore": 95,
+        "weeklyAppointments": 0,
+        "activeMedications": 1,
+        "pendingLabResults": 0,
         "totalMembers": 1,
         "needsAttention": 0,
         "lastUpdate": datetime.now(timezone.utc).isoformat()

@@ -107,7 +107,7 @@ export default function Sidebar({ activeView, onViewChange, userRole }: SidebarP
             className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
             style={{ background: userRole === 'doctor' ? 'linear-gradient(135deg, #A07C3A, #D4A96A)' : 'linear-gradient(135deg, #2D6A4F, #52B788)' }}
           >
-            {userRole === 'doctor' ? 'ط' : 'خ'}
+            {userRole === 'doctor' ? 'ط' : (patient?.nameAr ? patient.nameAr[0] : 'ج')}
           </div>
           <div className="flex-1 min-w-0 text-right">
             <div className="font-semibold text-sm truncate" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>
