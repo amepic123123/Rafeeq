@@ -12,6 +12,7 @@ export default function DoctorView() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [dictationLang, setDictationLang] = useState<'ar-JO' | 'en-US'>('ar-JO');
   const recognitionRef = useRef<any>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,7 +85,7 @@ export default function DoctorView() {
     const recognition = new SpeechRecognition();
     recognitionRef.current = recognition;
     
-    recognition.lang = 'ar-JO';
+    recognition.lang = dictationLang;
     recognition.continuous = true;
     recognition.interimResults = true;
     
@@ -472,6 +473,15 @@ export default function DoctorView() {
                 ) : (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
                 )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDictationLang(l => l === 'ar-JO' ? 'en-US' : 'ar-JO')}
+                className="absolute right-3 bottom-3 text-xs font-bold px-2 py-1.5 rounded-lg transition-colors hover:bg-emerald-50 bg-white shadow-sm border border-emerald-100"
+                style={{ color: '#4A6357', fontFamily: "'IBM Plex Sans Arabic'" }}
+                title="تغيير لغة الإملاء الصوتي"
+              >
+                {dictationLang === 'ar-JO' ? 'عربي' : 'EN'}
               </button>
             </div>
             

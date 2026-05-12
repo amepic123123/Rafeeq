@@ -14,6 +14,7 @@ export default function ChatView() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput]       = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [dictationLang, setDictationLang] = useState<'ar-JO' | 'en-US'>('ar-JO');
   const recognitionRef = useRef<any>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -56,7 +57,7 @@ export default function ChatView() {
     const recognition = new SpeechRecognition();
     recognitionRef.current = recognition;
     
-    recognition.lang = 'ar-JO';
+    recognition.lang = dictationLang;
     recognition.continuous = true;
     recognition.interimResults = true;
     
@@ -180,6 +181,15 @@ export default function ChatView() {
                 <line x1="8" y1="23" x2="16" y2="23"/>
               </svg>
             )}
+          </button>
+
+          <button
+            onClick={() => setDictationLang(l => l === 'ar-JO' ? 'en-US' : 'ar-JO')}
+            className="text-xs font-bold px-2 py-1 rounded-lg transition-colors hover:bg-gray-100"
+            style={{ color: '#4A6357', fontFamily: "'IBM Plex Sans Arabic'" }}
+            title="تغيير لغة الإملاء الصوتي"
+          >
+            {dictationLang === 'ar-JO' ? 'عربي' : 'EN'}
           </button>
 
           <input
