@@ -1,6 +1,7 @@
 'use client';
 
 import { View } from './RafeeqApp';
+import { usePatient } from '@/lib/hooks';
 
 interface SidebarProps {
   activeView: View;
@@ -42,6 +43,8 @@ const navItems: { id: View; iconSvg: string; labelAr: string; labelEn: string }[
 ];
 
 export default function Sidebar({ activeView, onViewChange, userRole }: SidebarProps) {
+  const { data: patient } = usePatient();
+  
   return (
     <aside
       className="glass-sidebar flex flex-col w-64 shrink-0 h-full z-20"
@@ -108,13 +111,13 @@ export default function Sidebar({ activeView, onViewChange, userRole }: SidebarP
           </div>
           <div className="flex-1 min-w-0 text-right">
             <div className="font-semibold text-sm truncate" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>
-              {userRole === 'doctor' ? 'د. أحمد صبحي' : 'خالد العمري'}
+              {userRole === 'doctor' ? 'د. أحمد صبحي' : (patient?.nameAr || 'جاري التحميل...')}
             </div>
             <div className="text-[11px]" style={{ color: '#8FA89B' }}>
-              {userRole === 'doctor' ? 'Hakeem Provider' : 'JO-2026-KHL-4821'}
+              {userRole === 'doctor' ? 'Hakeem Provider' : (patient?.nationalId ? `ID: ${patient.nationalId}` : 'JO-2026-KHL-4821')}
             </div>
           </div>
-          {userRole !== 'doctor' && <div className="text-xs font-bold" style={{ color: '#52B788' }}>74</div>}
+          {userRole !== 'doctor' && <div className="text-xs font-bold" style={{ color: '#52B788' }}>{patient?.healthScore || 74}</div>}
         </div>
       </div>
     </aside>

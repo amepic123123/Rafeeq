@@ -45,60 +45,60 @@ function useFetch<T>(fetcher: () => Promise<T>, skip = false): FetchState<T> {
 // Patient hooks
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function usePatient(patientId?: string): FetchState<Patient> {
-  return useFetch(() => api.getPatient(patientId!), !patientId);
+export function usePatient(patientId: string = 'JO-2026-KHL-4821'): FetchState<Patient> {
+  return useFetch(() => api.getPatient(patientId), !patientId);
 }
 
-export function useHealthScore(patientId?: string): FetchState<HealthScoreData> {
-  return useFetch(() => api.getHealthScore(patientId!), !patientId);
+export function useHealthScore(patientId: string = 'JO-2026-KHL-4821'): FetchState<HealthScoreData> {
+  return useFetch(() => api.getHealthScore(patientId), !patientId);
 }
 
-export function useQuickStats(patientId?: string): FetchState<QuickStats> {
-  return useFetch(() => api.getQuickStats(patientId!), !patientId);
+export function useQuickStats(patientId: string = 'JO-2026-KHL-4821'): FetchState<QuickStats> {
+  return useFetch(() => api.getQuickStats(patientId), !patientId);
 }
 
-export function useInsights(patientId?: string): FetchState<Insight[]> {
-  return useFetch(() => api.getInsights(patientId!), !patientId);
+export function useInsights(patientId: string = 'JO-2026-KHL-4821'): FetchState<Insight[]> {
+  return useFetch(() => api.getInsights(patientId), !patientId);
 }
 
-export function useMedications(patientId?: string): FetchState<Medication[]> {
-  return useFetch(() => api.getMedications(patientId!), !patientId);
+export function useMedications(patientId: string = 'JO-2026-KHL-4821'): FetchState<Medication[]> {
+  return useFetch(() => api.getMedications(patientId), !patientId);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Lab hooks
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useHbA1cHistory(patientId?: string, months = 7): FetchState<HbA1cPoint[]> {
-  return useFetch(() => api.getHbA1cHistory(patientId!, months), !patientId);
+export function useHbA1cHistory(patientId: string = 'JO-2026-KHL-4821', months = 7): FetchState<HbA1cPoint[]> {
+  return useFetch(() => api.getHbA1cHistory(patientId, months), !patientId);
 }
 
-export function useBloodPressureHistory(patientId?: string, days = 7): FetchState<BPPoint[]> {
-  return useFetch(() => api.getBloodPressureHistory(patientId!, days), !patientId);
+export function useBloodPressureHistory(patientId: string = 'JO-2026-KHL-4821', days = 7): FetchState<BPPoint[]> {
+  return useFetch(() => api.getBloodPressureHistory(patientId, days), !patientId);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Doctor / clinical hooks
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useRiskFlags(patientId?: string): FetchState<RiskFlag[]> {
-  return useFetch(() => api.getRiskFlags(patientId!), !patientId);
+export function useRiskFlags(patientId: string = 'JO-2026-KHL-4821'): FetchState<RiskFlag[]> {
+  return useFetch(() => api.getRiskFlags(patientId), !patientId);
 }
 
-export function useHakeemHistory(patientId?: string, limit = 10): FetchState<HakeemEntry[]> {
-  return useFetch(() => api.getHakeemHistory(patientId!, limit), !patientId);
+export function useHakeemHistory(patientId: string = 'JO-2026-KHL-4821', limit = 10): FetchState<HakeemEntry[]> {
+  return useFetch(() => api.getHakeemHistory(patientId, limit), !patientId);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Chat hooks
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useChatHistory(patientId?: string): FetchState<ChatMessage[]> {
-  return useFetch(() => api.getChatHistory(patientId!), !patientId);
+export function useChatHistory(patientId: string = 'JO-2026-KHL-4821'): FetchState<ChatMessage[]> {
+  return useFetch(() => api.getChatHistory(patientId), !patientId);
 }
 
-export function useSuggestedPrompts(patientId?: string): FetchState<SuggestedPrompt[]> {
-  return useFetch(() => api.getSuggestedPrompts(patientId!), !patientId);
+export function useSuggestedPrompts(patientId: string = 'JO-2026-KHL-4821'): FetchState<SuggestedPrompt[]> {
+  return useFetch(() => api.getSuggestedPrompts(patientId), !patientId);
 }
 
 /**
