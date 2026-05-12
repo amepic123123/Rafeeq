@@ -184,16 +184,5 @@ export function usePrescriptionAnalysis(patientId: string) {
   return { result, isScanning, progress, error, analyze, reset };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Shared loading skeleton helper
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** Returns a shimmering placeholder div matching the given height class. */
-export function Skeleton({ h = 'h-6', className = '' }: { h?: string; className?: string }) {
-  return (
-    <div
-      className={`${h} ${className} rounded-xl animate-pulse`}
-      style={{ background: 'rgba(45,106,79,0.07)' }}
-    />
-  );
-}
+// Skeleton lives in a .tsx file since this file cannot contain JSX
+export { Skeleton } from '@/components/Skeleton';
