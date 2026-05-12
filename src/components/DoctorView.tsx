@@ -11,6 +11,7 @@ export default function DoctorView() {
   const [symptoms, setSymptoms] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -61,6 +62,41 @@ export default function DoctorView() {
       setIsAiLoading(false);
       setAiSuggestion(`بناءً على الأعراض الحالية ("${symptoms}") وتاريخ المريض الطبي (ارتفاع ضغط الدم، سكري من النوع الثاني)، يُنصح بتجنب الأدوية التي ترفع ضغط الدم مثل مضادات الاحتقان الموضعية. \n\nالتوصية المبدئية:\n1. Paracetamol 500mg للتحكم بالألم والحرارة.\n2. إجراء تحليل دم شامل (CBC) للتحقق من وجود التهاب.\nيرجى مراجعة التفاعلات الدوائية المحتملة مع "Metformin" و "Amlodipine" المسجلة في ملف المريض.`);
     }, 2500);
+  };
+
+  const handleMicrophoneClick = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('عذراً، متصفحك لا يدعم خاصية الإملاء الصوتي.');
+      return;
+    }
+
+    if (isRecording) {
+      return; // Handled by onend automatically if they stop talking, or we could keep a ref to manually stop.
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'ar-JO';
+    recognition.interimResults = false;
+    
+    recognition.onstart = () => setIsRecording(true);
+    
+    recognition.onresult = (event: any) => {
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+      if (finalTranscript) {
+        setSymptoms(prev => prev + (prev ? ' ' : '') + finalTranscript);
+      }
+    };
+    
+    recognition.onerror = () => setIsRecording(false);
+    recognition.onend = () => setIsRecording(false);
+    
+    recognition.start();
   };
 
   if (!selectedPatient) {
@@ -377,16 +413,32 @@ export default function DoctorView() {
           </div>
           
           <div className="space-y-4">
-            <div>
+            <div className="relative">
               <label className="block text-sm font-semibold mb-2" style={{ color: '#4A6357', fontFamily: "'IBM Plex Sans Arabic'" }}>الأعراض الحالية للمريض:</label>
               <textarea
                 value={symptoms}
                 onChange={(e) => setSymptoms(e.target.value)}
                 placeholder="مثال: يشكو المريض من صداع نصفي مستمر منذ يومين مع ارتفاع طفيف في الحرارة..."
-                className="w-full p-4 rounded-xl border outline-none resize-none h-32 transition-colors focus:border-emerald-500"
+                className="w-full p-4 pb-12 rounded-xl border outline-none resize-none h-36 transition-colors focus:border-emerald-500"
                 style={{ borderColor: 'rgba(82,183,136,0.3)', background: 'rgba(255,255,255,0.8)', color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}
                 dir="rtl"
               />
+              <button
+                type="button"
+                onClick={handleMicrophoneClick}
+                title="تحدث بدلاً من الكتابة"
+                className={`absolute left-3 bottom-3 p-2.5 rounded-full transition-all flex items-center justify-center ${
+                  isRecording 
+                    ? 'bg-red-50 text-red-500 animate-pulse shadow-sm' 
+                    : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700'
+                }`}
+              >
+                {isRecording ? (
+                  <span className="w-5 h-5 rounded-full bg-red-500 animate-ping" />
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+                )}
+              </button>
             </div>
             
             <button
