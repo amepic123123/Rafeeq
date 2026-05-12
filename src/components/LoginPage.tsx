@@ -372,10 +372,17 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               ليس لديك حساب؟{' '}
               <button className="font-semibold" style={{ color: '#2D6A4F' }}>سجّل عبر حكيم</button>
             </p>
-            <p className="text-xs mt-2" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>
-              أنت طبيب؟{' '}
-              <button type="button" onClick={(e) => handleSubmit(e, 'doctor')} className="font-semibold" style={{ color: '#D4A96A' }}>دخول كطبيب (تجريبي)</button>
-            </p>
+            <div className="mt-4 pt-4 border-t border-emerald-50 text-xs flex flex-col gap-2 items-center" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>
+              <div className="font-semibold mb-1">تسجيل الدخول التجريبي:</div>
+              <div className="flex gap-4">
+                <button type="button" onClick={(e) => handleSubmit(e, 'doctor')} className="font-semibold transition-transform hover:scale-105 px-3 py-1.5 rounded-lg" style={{ background: 'rgba(212,169,106,0.15)', color: '#A07C3A' }}>
+                  🏥 كطبيب (د. أحمد)
+                </button>
+                <button type="button" onClick={(e) => handleSubmit(e, 'patient')} className="font-semibold transition-transform hover:scale-105 px-3 py-1.5 rounded-lg" style={{ background: 'rgba(45,106,79,0.1)', color: '#2D6A4F' }}>
+                  👤 كمريض (حساب د. أحمد الشخصي)
+                </button>
+              </div>
+            </div>
             <div className="flex items-center justify-center gap-4 mt-4">
               <span className="text-[10px]" style={{ color: '#B7E4C7' }}>🔐 HIPAA Compliant</span>
               <span className="text-[10px]" style={{ color: '#B7E4C7' }}>·</span>
