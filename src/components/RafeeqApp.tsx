@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import LoginPage from '@/components/LoginPage';
 import Sidebar from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
 import PatientDashboard from '@/components/PatientDashboard';
@@ -12,6 +13,7 @@ import FamilyView from '@/components/FamilyView';
 export type View = 'dashboard' | 'chat' | 'labs' | 'doctor' | 'family';
 
 export default function RafeeqApp() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeView, setActiveView] = useState<View>('dashboard');
   const [caregiverMode, setCaregiverMode] = useState(false);
 
@@ -19,6 +21,12 @@ export default function RafeeqApp() {
     setActiveView(view);
   }, []);
 
+  // ── Login Gate ──────────────────────────────────────────────────
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={() => setIsLoggedIn(true)} />;
+  }
+
+  // ── Main App Shell ─────────────────────────────────────────────
   return (
     <div
       className={`flex h-screen overflow-hidden ${caregiverMode ? 'caregiver-mode' : ''}`}

@@ -258,3 +258,187 @@ body {
 .fade-up-3 { animation: fade-up 0.5s 0.15s ease both; }
 .fade-up-4 { animation: fade-up 0.5s 0.20s ease both; }
 .fade-up-5 { animation: fade-up 0.5s 0.25s ease both; }
+
+/* ─────────────────────────────────────────────────────────────── */
+/* ── Login Page                                                   */
+/* ─────────────────────────────────────────────────────────────── */
+
+/* Aurora gradient shift on the visual panel */
+@keyframes aurora {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.login-aurora {
+  background: linear-gradient(
+    -45deg,
+    #1B4332, #2D6A4F, #40916C, #1B4332,
+    #2D6A4F, #52B788, #2D6A4F
+  );
+  background-size: 400% 400%;
+  animation: aurora 12s ease infinite;
+}
+
+/* Floating particles */
+@keyframes float-particle {
+  0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.6; }
+  100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+}
+
+.login-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: float-particle linear infinite;
+}
+
+/* Large orb for login visual */
+@keyframes login-orb-morph {
+  0%, 100% {
+    border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    border-radius: 30% 70% 50% 50% / 60% 30% 70% 40%;
+    transform: scale(1.05) rotate(5deg);
+  }
+  50% {
+    border-radius: 50% 50% 40% 60% / 40% 70% 30% 60%;
+    transform: scale(0.95) rotate(-3deg);
+  }
+  75% {
+    border-radius: 70% 30% 60% 40% / 50% 50% 50% 50%;
+    transform: scale(1.03) rotate(2deg);
+  }
+}
+
+.login-orb {
+  background: radial-gradient(
+    ellipse at 30% 30%,
+    rgba(116, 198, 157, 0.9),
+    rgba(82, 183, 136, 0.7) 30%,
+    rgba(45, 106, 79, 0.8) 60%,
+    rgba(27, 67, 50, 0.95)
+  );
+  animation: login-orb-morph 8s ease-in-out infinite;
+  box-shadow:
+    0 0 80px rgba(82, 183, 136, 0.5),
+    0 0 160px rgba(45, 106, 79, 0.3),
+    inset 0 0 60px rgba(116, 198, 157, 0.3);
+}
+
+/* Orbit rings around the orb */
+@keyframes orbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.login-orbit {
+  border: 1px solid rgba(183, 228, 199, 0.2);
+  border-radius: 50%;
+  animation: orbit linear infinite;
+}
+
+.login-orbit-dot {
+  width: 6px;
+  height: 6px;
+  background: rgba(183, 228, 199, 0.7);
+  border-radius: 50%;
+  position: absolute;
+  box-shadow: 0 0 8px rgba(116, 198, 157, 0.6);
+}
+
+/* Glass login card */
+.login-glass {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 32px;
+  box-shadow:
+    0 20px 60px rgba(45, 106, 79, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* Input focus glow */
+.login-input {
+  background: rgba(248, 244, 240, 0.6);
+  border: 1.5px solid rgba(82, 183, 136, 0.20);
+  border-radius: 16px;
+  padding: 14px 18px;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  width: 100%;
+  color: #1A2B22;
+}
+
+.login-input:focus {
+  border-color: #52B788;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 4px rgba(82, 183, 136, 0.12), 0 2px 12px rgba(45, 106, 79, 0.08);
+}
+
+.login-input::placeholder {
+  color: #8FA89B;
+}
+
+/* Primary CTA button */
+.login-btn-primary {
+  background: linear-gradient(135deg, #2D6A4F, #40916C, #52B788);
+  background-size: 200% 200%;
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 16px;
+  padding: 14px;
+  width: 100%;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-btn-primary:hover {
+  background-position: 100% 50%;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(45, 106, 79, 0.25);
+}
+
+.login-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Sanad button */
+.login-btn-sanad {
+  background: rgba(45, 106, 79, 0.06);
+  border: 1.5px solid rgba(82, 183, 136, 0.3);
+  border-radius: 16px;
+  padding: 14px;
+  width: 100%;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #2D6A4F;
+  font-weight: 600;
+}
+
+.login-btn-sanad:hover {
+  background: rgba(82, 183, 136, 0.12);
+  border-color: #52B788;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(45, 106, 79, 0.10);
+}
+
+/* Staggered entrance for login elements */
+.login-enter-1 { animation: fade-up 0.6s 0.1s ease both; }
+.login-enter-2 { animation: fade-up 0.6s 0.2s ease both; }
+.login-enter-3 { animation: fade-up 0.6s 0.3s ease both; }
+.login-enter-4 { animation: fade-up 0.6s 0.4s ease both; }
+.login-enter-5 { animation: fade-up 0.6s 0.5s ease both; }
+.login-enter-6 { animation: fade-up 0.6s 0.6s ease both; }
+.login-enter-7 { animation: fade-up 0.6s 0.7s ease both; }
