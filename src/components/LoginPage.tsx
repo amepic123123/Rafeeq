@@ -1,35 +1,15 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 
 interface LoginPageProps {
   onLogin: (role: 'patient' | 'doctor') => void;
 }
 
-/* Deterministic particles — generated once, stable across SSR/client */
-const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
-  id: i,
-  left: `${(i * 17 + 7) % 100}%`,
-  size: 3 + ((i * 3) % 6),
-  duration: 8 + (i % 7) * 2,
-  delay: (i * 1.3) % 8,
-  opacity: 0.15 + ((i * 0.04) % 0.35),
-}));
-
 export default function LoginPage({ onLogin }: LoginPageProps) {
-  const [mode, setMode] = useState<'sanad' | 'credentials'>('sanad');
   const [nationalId, setNationalId] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
-  // Feature highlights on the visual side
-  const features = useMemo(() => [
-    { icon: '🩺', text: 'تحليل ذكي لتحاليلك المخبرية' },
-    { icon: '💊', text: 'إدارة أدويتك بذكاء مع تنبيهات رمضان' },
-    { icon: '🔒', text: 'بياناتك محمية عبر نظام حكيم الوطني' },
-    { icon: '👨‍👩‍👧‍👦', text: 'متابعة صحة العائلة بالكامل' },
-  ], []);
 
   const handleSubmit = (e: React.FormEvent, role: 'patient' | 'doctor' = 'patient') => {
     e.preventDefault();
@@ -42,357 +22,162 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden" dir="rtl">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0A1913]" dir="rtl">
+      
+      {/* Dynamic Animated Mesh Gradient Background */}
+      <div className="absolute inset-0 w-full h-full">
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-[#2D6A4F] rounded-full mix-blend-screen filter blur-[120px] opacity-60 animate-blob" />
+        <div className="absolute top-[20%] -right-[10%] w-[60%] h-[60%] bg-[#081C15] rounded-full mix-blend-screen filter blur-[150px] opacity-80 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] bg-[#1B4332] rounded-full mix-blend-screen filter blur-[120px] opacity-70 animate-blob animation-delay-4000" />
+      </div>
 
-      {/* ─── Left: Immersive Visual Panel ─────────────────────────── */}
-      <div className="hidden lg:flex lg:w-[55%] relative login-aurora overflow-hidden items-center justify-center">
-
-        {/* Floating particles */}
-        {PARTICLES.map(p => (
-          <div
-            key={p.id}
-            className="login-particle"
-            style={{
-              left: p.left,
-              width: p.size,
-              height: p.size,
-              background: `rgba(183, 228, 199, ${p.opacity})`,
-              animationDuration: `${p.duration}s`,
-              animationDelay: `${p.delay}s`,
-            }}
+      <div className="relative z-10 w-full max-w-[1000px] flex flex-col md:flex-row items-center justify-between gap-12 px-6">
+        
+        {/* Left Side: Branding */}
+        <div className="flex-1 text-center md:text-right hidden md:block">
+          <img
+            src="/logo.png"
+            alt="Rafeeq Logo"
+            className="w-32 h-32 object-contain drop-shadow-2xl mb-8"
           />
-        ))}
-
-        {/* Central orb with orbits */}
-        <div className="relative flex items-center justify-center">
-          {/* Outer orbit */}
-          <div
-            className="login-orbit absolute"
-            style={{ width: 320, height: 320, animationDuration: '20s' }}
-          >
-            <div className="login-orbit-dot" style={{ top: 0, left: '50%', transform: 'translateX(-50%)' }} />
-            <div className="login-orbit-dot" style={{ bottom: 0, left: '50%', transform: 'translateX(-50%)' }} />
-          </div>
-
-          {/* Middle orbit */}
-          <div
-            className="login-orbit absolute"
-            style={{ width: 240, height: 240, animationDuration: '14s', animationDirection: 'reverse' }}
-          >
-            <div className="login-orbit-dot" style={{ top: '50%', right: 0, transform: 'translateY(-50%)' }} />
-          </div>
-
-          {/* Inner orbit */}
-          <div
-            className="login-orbit absolute"
-            style={{ width: 170, height: 170, animationDuration: '10s' }}
-          >
-            <div className="login-orbit-dot" style={{ bottom: 0, right: '20%' }} />
-          </div>
-
-          {/* The Orb */}
-          <div className="login-orb w-36 h-36" />
-        </div>
-
-        {/* Branding overlay */}
-        <div className="absolute top-10 right-10 text-right fade-up-1">
-          <div className="flex items-center gap-3 mb-2">
-            <img
-              src="/logo.jpg"
-              alt="Rafeeq Logo"
-              className="w-14 h-14 object-contain rounded-2xl shadow-lg"
-            />
-            <div>
-              <div className="text-white font-bold text-lg" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>رفيق</div>
-              <div className="text-white/50 text-xs" style={{ fontFamily: "'Inter'" }}>Powered by Hakeem</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Feature pills at bottom */}
-        <div className="absolute bottom-10 left-10 right-10 fade-up-3">
-          <div className="grid grid-cols-2 gap-3">
-            {features.map((f, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-                style={{
-                  background: 'rgba(255,255,255,0.08)',
-                  backdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                }}
-              >
-                <span className="text-lg">{f.icon}</span>
-                <span className="text-white/80 text-xs" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>{f.text}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Arabic quote */}
-        <div className="absolute top-1/2 left-10 right-10 -translate-y-1/2 text-center pointer-events-none fade-up-2" style={{ marginTop: 120 }}>
-          <p className="text-white/30 text-sm italic" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>
-            &ldquo;صحتك أمانة — رفيق يساعدك تحافظ عليها&rdquo;
+          <h1 className="text-5xl lg:text-6xl font-bold mb-4 text-white" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>
+            رفيق
+          </h1>
+          <h2 className="text-2xl font-light text-[#B7E4C7] mb-6" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>
+            مستقبلك الصحي، بين يديك.
+          </h2>
+          <p className="text-lg text-[#95D5B2] leading-relaxed max-w-md opacity-80" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>
+            المساعد الطبي الذكي المتكامل مع نظام حكيم. مدعوم بالذكاء الاصطناعي لتوفير تحليل لحظي، تتبع دقيق للأدوية، ورعاية صحية فائقة لك ولعائلتك.
           </p>
         </div>
-      </div>
 
-      {/* ─── Right: Login Form ─────────────────────────────────────── */}
-      <div
-        className="flex-1 flex items-center justify-center p-6 lg:p-12 relative overflow-hidden"
-        style={{ background: '#F8F4F0' }}
-      >
-        {/* Subtle background shapes */}
-        <div
-          className="absolute -top-32 -right-32 w-64 h-64 rounded-full opacity-[0.05]"
-          style={{ background: 'radial-gradient(circle, #52B788, transparent)' }}
-        />
-        <div
-          className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full opacity-[0.04]"
-          style={{ background: 'radial-gradient(circle, #2D6A4F, transparent)' }}
-        />
-
-        <div className="w-full max-w-md">
-
-          {/* Mobile logo (hidden on desktop) */}
-          <div className="flex items-center gap-3 mb-8 lg:hidden login-enter-1">
-            <img
-              src="/logo.jpg"
-              alt="Rafeeq Logo"
-              className="w-12 h-12 object-contain rounded-xl shadow-md"
-            />
-            <div>
-              <div className="font-bold text-lg" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>رفيق</div>
-              <div className="text-xs" style={{ color: '#8FA89B' }}>Powered by Hakeem</div>
-            </div>
-          </div>
-
-          {/* Welcome text */}
-          <div className="mb-8 login-enter-1">
-            <h1 className="text-2xl font-bold mb-2" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>
-              مرحباً بعودتك 👋
-            </h1>
-            <p className="text-sm" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>
-              سجّل دخولك للوصول إلى ملفك الصحي الذكي
-            </p>
-          </div>
-
-          {/* Login glass card */}
-          <div className="login-glass p-8">
-
-            {/* Auth mode tabs */}
-            <div className="flex rounded-2xl p-1 mb-6 login-enter-2" style={{ background: 'rgba(45,106,79,0.05)' }}>
-              <button
-                onClick={() => setMode('sanad')}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all"
-                style={{
-                  background: mode === 'sanad' ? 'white' : 'transparent',
-                  color: mode === 'sanad' ? '#2D6A4F' : '#8FA89B',
-                  boxShadow: mode === 'sanad' ? '0 2px 8px rgba(45,106,79,0.10)' : 'none',
-                  fontFamily: "'IBM Plex Sans Arabic'",
-                }}
-              >
-                🪪 سند الأردن
-              </button>
-              <button
-                onClick={() => setMode('credentials')}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all"
-                style={{
-                  background: mode === 'credentials' ? 'white' : 'transparent',
-                  color: mode === 'credentials' ? '#2D6A4F' : '#8FA89B',
-                  boxShadow: mode === 'credentials' ? '0 2px 8px rgba(45,106,79,0.10)' : 'none',
-                  fontFamily: "'IBM Plex Sans Arabic'",
-                }}
-              >
-                🔑 رقم وطني
-              </button>
+        {/* Right Side: Glass Login Card */}
+        <div className="w-full max-w-[450px]">
+          <div className="bg-white/10 backdrop-blur-2xl border border-white/20 p-10 rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+            
+            <div className="md:hidden flex flex-col items-center mb-8">
+              <img
+                src="/logo.png"
+                alt="Rafeeq Logo"
+                className="w-20 h-20 object-contain drop-shadow-2xl mb-4"
+              />
+              <h1 className="text-3xl font-bold text-white" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>رفيق</h1>
             </div>
 
-            {mode === 'sanad' ? (
-              /* ── Sanad SSO ─────────────────────── */
-              <div className="space-y-4">
-                <button
-                  className="login-btn-sanad flex items-center justify-center gap-3 login-enter-3"
-                  style={{ fontFamily: "'IBM Plex Sans Arabic'" }}
-                  onClick={handleSubmit}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <div className="flex gap-1">
-                      {[0, 1, 2].map(i => (
-                        <div key={i} className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: '#2D6A4F', animationDelay: `${i * 0.15}s` }} />
-                      ))}
-                    </div>
-                  ) : (
-                    <>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                      </svg>
-                      <span>تسجيل الدخول عبر سند</span>
-                    </>
-                  )}
-                </button>
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>
+                تسجيل الدخول
+              </h2>
+              <p className="text-[#95D5B2] text-sm" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>
+                للوصول إلى ملفك الصحي الذكي
+              </p>
+            </div>
 
-                <div className="flex items-center gap-3 login-enter-4">
-                  <div className="flex-1 h-px" style={{ background: 'rgba(45,106,79,0.10)' }} />
-                  <span className="text-xs" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>الطريقة الأسرع والأكثر أماناً</span>
-                  <div className="flex-1 h-px" style={{ background: 'rgba(45,106,79,0.10)' }} />
-                </div>
-
-                <div
-                  className="flex items-center gap-3 p-4 rounded-2xl login-enter-5"
-                  style={{ background: 'rgba(45,106,79,0.04)', border: '1px solid rgba(82,183,136,0.12)' }}
-                >
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: 'linear-gradient(135deg, #2D6A4F, #52B788)' }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="text-xs font-semibold" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>
-                      تشفير من طرف إلى طرف
-                    </div>
-                    <div className="text-[11px]" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>
-                      بياناتك الصحية محمية بمعايير حكيم الأمنية
-                    </div>
-                  </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[#D8F3DC]" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>الرقم الوطني</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={nationalId}
+                    onChange={(e) => setNationalId(e.target.value)}
+                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#52B788] focus:border-transparent transition-all"
+                    placeholder="JO-0000-XXX-000"
+                    style={{ fontFamily: "'IBM Plex Sans Arabic'" }}
+                  />
                 </div>
               </div>
-            ) : (
-              /* ── Credentials ───────────────────── */
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="login-enter-3">
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4A6357', fontFamily: "'IBM Plex Sans Arabic'" }}>
-                    الرقم الوطني
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="login-national-id"
-                      type="text"
-                      value={nationalId}
-                      onChange={e => setNationalId(e.target.value)}
-                      placeholder="أدخل الرقم الوطني"
-                      className="login-input pr-11"
-                      style={{ fontFamily: "'IBM Plex Sans Arabic'" }}
-                      dir="rtl"
-                      autoComplete="username"
-                    />
-                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8FA89B" strokeWidth="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                      </svg>
-                    </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[#D8F3DC]" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>كلمة المرور</label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#52B788] focus:border-transparent transition-all"
+                    placeholder="••••••••"
+                    style={{ fontFamily: "'IBM Plex Sans Arabic'" }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input type="checkbox" className="w-4 h-4 rounded border-white/20 bg-black/20 accent-[#52B788]" />
+                  <span className="text-sm text-[#B7E4C7] group-hover:text-white transition-colors" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>تذكرني</span>
+                </label>
+                <button type="button" className="text-sm text-[#52B788] hover:text-[#74C69D] font-medium transition-colors" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>
+                  نسيت كلمة المرور؟
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || !nationalId.trim() || !password.trim()}
+                className="w-full bg-gradient-to-l from-[#2D6A4F] to-[#40916C] hover:from-[#40916C] hover:to-[#52B788] text-white rounded-xl py-4 font-bold text-lg shadow-[0_4px_14px_rgba(45,106,79,0.4)] transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                style={{ fontFamily: "'IBM Plex Sans Arabic'" }}
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce animation-delay-200" />
+                    <div className="w-2 h-2 bg-white rounded-full animate-bounce animation-delay-400" />
                   </div>
-                </div>
+                ) : (
+                  'تسجيل الدخول'
+                )}
+              </button>
 
-                <div className="login-enter-4">
-                  <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4A6357', fontFamily: "'IBM Plex Sans Arabic'" }}>
-                    كلمة المرور
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="login-password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      placeholder="أدخل كلمة المرور"
-                      className="login-input pr-11 pl-11"
-                      style={{ fontFamily: "'IBM Plex Sans Arabic'" }}
-                      dir="rtl"
-                      autoComplete="current-password"
-                    />
-                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8FA89B" strokeWidth="2">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                      </svg>
-                    </div>
-                    <button
-                      type="button"
-                      className="absolute left-3.5 top-1/2 -translate-y-1/2 cursor-pointer"
-                      onClick={() => setShowPassword(!showPassword)}
-                      tabIndex={-1}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8FA89B" strokeWidth="2">
-                        {showPassword ? (
-                          <>
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                            <circle cx="12" cy="12" r="3" />
-                          </>
-                        ) : (
-                          <>
-                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                            <line x1="1" y1="1" x2="23" y2="23" />
-                          </>
-                        )}
-                      </svg>
-                    </button>
-                  </div>
-                </div>
+            </form>
 
-                <div className="flex justify-between items-center login-enter-5">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" className="w-3.5 h-3.5 rounded accent-emerald-deep" />
-                    <span className="text-xs" style={{ color: '#4A6357', fontFamily: "'IBM Plex Sans Arabic'" }}>تذكرني</span>
-                  </label>
-                  <button type="button" className="text-xs font-medium" style={{ color: '#52B788', fontFamily: "'IBM Plex Sans Arabic'" }}>
-                    نسيت كلمة المرور؟
-                  </button>
-                </div>
-
+            {/* Quick Demo Logins */}
+            <div className="mt-8 pt-6 border-t border-white/10 text-center">
+              <p className="text-xs text-[#95D5B2] mb-4 uppercase tracking-widest font-semibold">Demo Access</p>
+              <div className="flex flex-col gap-3">
                 <button
-                  type="submit"
-                  className="login-btn-primary login-enter-6"
+                  type="button"
+                  onClick={(e) => handleSubmit(e, 'doctor')}
+                  className="w-full bg-[#1B4332]/50 hover:bg-[#1B4332] border border-[#2D6A4F] text-[#D8F3DC] rounded-xl py-3 text-sm font-medium transition-all"
                   style={{ fontFamily: "'IBM Plex Sans Arabic'" }}
-                  disabled={isLoading || !nationalId.trim() || !password.trim()}
                 >
-                  {isLoading ? (
-                    <div className="flex justify-center gap-1">
-                      {[0, 1, 2].map(i => (
-                        <div key={i} className="w-1.5 h-1.5 rounded-full bg-white animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-                      ))}
-                    </div>
-                  ) : (
-                    'تسجيل الدخول'
-                  )}
+                  👨‍⚕️ الدخول كطبيب (د. أحمد)
                 </button>
-              </form>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="mt-6 text-center login-enter-7">
-            <p className="text-xs" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>
-              ليس لديك حساب؟{' '}
-              <button className="font-semibold" style={{ color: '#2D6A4F' }}>سجّل عبر حكيم</button>
-            </p>
-            <div className="mt-4 pt-4 border-t border-emerald-50 text-xs flex flex-col gap-2 items-center" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>
-              <div className="font-semibold mb-1">تسجيل الدخول التجريبي:</div>
-              <div className="flex gap-4">
-                <button type="button" onClick={(e) => handleSubmit(e, 'doctor')} className="font-semibold transition-transform hover:scale-105 px-3 py-1.5 rounded-lg" style={{ background: 'rgba(212,169,106,0.15)', color: '#A07C3A' }}>
-                  🏥 كطبيب (د. أحمد)
-                </button>
-                <button type="button" onClick={(e) => handleSubmit(e, 'patient')} className="font-semibold transition-transform hover:scale-105 px-3 py-1.5 rounded-lg" style={{ background: 'rgba(45,106,79,0.1)', color: '#2D6A4F' }}>
-                  👤 كمريض (حساب د. أحمد الشخصي)
+                <button
+                  type="button"
+                  onClick={(e) => handleSubmit(e, 'patient')}
+                  className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl py-3 text-sm font-medium transition-all"
+                  style={{ fontFamily: "'IBM Plex Sans Arabic'" }}
+                >
+                  👤 الدخول كمريض (حساب تجريبي)
                 </button>
               </div>
             </div>
-            <div className="flex items-center justify-center gap-4 mt-4">
-              <span className="text-[10px]" style={{ color: '#B7E4C7' }}>🔐 HIPAA Compliant</span>
-              <span className="text-[10px]" style={{ color: '#B7E4C7' }}>·</span>
-              <span className="text-[10px]" style={{ color: '#B7E4C7' }}>🇯🇴 Hakeem Certified</span>
-              <span className="text-[10px]" style={{ color: '#B7E4C7' }}>·</span>
-              <span className="text-[10px]" style={{ color: '#B7E4C7' }}>🛡️ End-to-End Encrypted</span>
-            </div>
+
           </div>
         </div>
+
       </div>
+
+      {/* Global CSS required for the animated background blobs */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}} />
     </div>
   );
 }

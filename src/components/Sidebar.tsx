@@ -50,7 +50,7 @@ export default function Sidebar({ activeView, onViewChange, userRole }: SidebarP
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-6 border-b border-white/30">
         <img
-          src="/logo.jpg"
+          src="/logo.png"
           alt="Rafeeq Logo"
           className="w-12 h-12 object-contain rounded-xl shadow-sm"
         />
