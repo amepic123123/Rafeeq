@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { loginWithNationalId } from '@/lib/api';
 
 interface LoginPageProps {
   onLogin: (role: 'patient' | 'doctor') => void;
@@ -31,14 +32,41 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     { icon: '👨‍👩‍👧‍👦', text: 'متابعة صحة العائلة بالكامل' },
   ], []);
 
-  const handleSubmit = (e: React.FormEvent, role: 'patient' | 'doctor' = 'patient') => {
+  const handleSubmit = async (e: React.FormEvent, roleOverride?: 'patient' | 'doctor') => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate login — replace with real API call
-    setTimeout(() => {
+
+    try {
+      if (roleOverride) {
+        // Fast-path for demo buttons
+        const demoId = roleOverride === 'doctor' ? '1111111111' : '9901234567';
+        const demoPass = roleOverride === 'doctor' ? 'doctor123' : 'patient123';
+        
+        try {
+          const res = await loginWithNationalId(demoId, demoPass);
+          localStorage.setItem('rafeeq_token', res.access_token);
+        } catch (err) {
+          console.warn("Backend auth failed or unreachable, falling back to local demo mode", err);
+        }
+        onLogin(roleOverride);
+      } else {
+        // Real user credentials login
+        if (mode === 'credentials') {
+          const res = await loginWithNationalId(nationalId, password);
+          localStorage.setItem('rafeeq_token', res.access_token);
+          // For now, if we don't decode the JWT, we assume patient if they use credentials, unless we check nationalId
+          const isDoctor = nationalId === '1111111111';
+          onLogin(isDoctor ? 'doctor' : 'patient');
+        } else {
+          // Sanad mock
+          setTimeout(() => onLogin('patient'), 1500);
+        }
+      }
+    } catch (err: any) {
+      alert("فشل تسجيل الدخول: " + err.message);
+    } finally {
       setIsLoading(false);
-      onLogin(role);
-    }, 1500);
+    }
   };
 
   return (

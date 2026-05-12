@@ -23,8 +23,21 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   if (!BASE_URL) {
     throw new Error('NEXT_PUBLIC_API_URL not configured — using mock data');
   }
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  };
+
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('rafeeq_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    headers: { ...headers, ...(options?.headers as Record<string, string>) },
     ...options,
   });
   if (!res.ok) {
@@ -39,6 +52,31 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Auth APIs
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function loginWithNationalId(nationalId: string, password: string): Promise<{ access_token: string; token_type: string }> {
+  if (!BASE_URL) throw new Error('API not configured');
+
+  const formData = new URLSearchParams();
+  formData.append('username', nationalId);
+  formData.append('password', password);
+
+  const res = await fetch(`${BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: formData.toString()
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => res.statusText);
+    throw new Error(`Login failed: ${text}`);
+  }
+
+  return res.json();
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Patient APIs
