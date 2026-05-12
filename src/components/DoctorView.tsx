@@ -331,7 +331,9 @@ export default function DoctorView() {
               )}
             </div>
           </div>
-        </>
+        </div>
+      </div>
+    </>
       ) : (
         <div className="fade-up-2 -mx-6">
           <LabsView patientId={selectedPatient} />
