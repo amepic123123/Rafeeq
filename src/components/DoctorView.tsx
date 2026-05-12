@@ -224,7 +224,7 @@ export default function DoctorView() {
             العودة للبحث
           </button>
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>ملف المريض: {lPatient ? '...' : patient?.name || selectedPatient}</h2>
+            <h2 className="text-xl font-bold" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>ملف المريض: {lPatient ? '...' : patient?.nameAr || selectedPatient}</h2>
             <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(45,106,79,0.1)', color: '#2D6A4F', fontFamily: "'Inter'" }}>{selectedPatient}</span>
           </div>
         </div>
@@ -241,7 +241,7 @@ export default function DoctorView() {
           </div>
           <div className="text-center px-3">
             <div className="text-[10px] text-gray-400 mb-0.5" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>المؤشر الصحي</div>
-            <div className="text-sm font-bold" style={{ color: '#2D6A4F' }}>{lHealth ? '-' : health?.overallScore}/100</div>
+            <div className="text-sm font-bold" style={{ color: '#2D6A4F' }}>{lHealth ? '-' : health?.overall}/100</div>
           </div>
         </div>
       </div>
