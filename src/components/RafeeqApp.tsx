@@ -32,9 +32,12 @@ export default function RafeeqApp() {
 
   // Derive active view from URL
   const pathSegment = pathname?.split('/')[1] || '';
-  const validViews = ['dashboard', 'chat', 'labs', 'doctor', 'family'];
+  const validViews = userRole === 'doctor' 
+    ? ['labs', 'doctor'] 
+    : ['dashboard', 'chat', 'labs', 'family'];
   const isValidView = validViews.includes(pathSegment);
-  const activeView: View = isValidView ? (pathSegment as View) : 'dashboard';
+  const defaultView = userRole === 'doctor' ? 'doctor' : 'dashboard';
+  const activeView: View = isValidView ? (pathSegment as View) : defaultView;
 
   const handleViewChange = useCallback((view: View) => {
     router.push(`/${view}`);
@@ -43,7 +46,7 @@ export default function RafeeqApp() {
   // Redirect invalid paths
   useEffect(() => {
     if (userRole && !isValidView && pathname !== '/') {
-      router.replace('/dashboard');
+      router.replace(`/${userRole === 'doctor' ? 'doctor' : 'dashboard'}`);
     }
   }, [pathname, isValidView, userRole, router]);
 

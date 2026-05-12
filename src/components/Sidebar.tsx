@@ -68,7 +68,8 @@ export default function Sidebar({ activeView, onViewChange, userRole }: SidebarP
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navItems.map(item => {
-          if (item.id === 'doctor' && userRole !== 'doctor') return null;
+          if (userRole === 'doctor' && !['labs', 'doctor'].includes(item.id)) return null;
+          if (userRole === 'patient' && item.id === 'doctor') return null;
           return (
             <button
               key={item.id}
@@ -96,24 +97,24 @@ export default function Sidebar({ activeView, onViewChange, userRole }: SidebarP
         })}
       </nav>
 
-      {/* Patient card */}
+      {/* User Profile Card */}
       <div className="px-4 py-4 border-t border-white/30">
         <div className="glass-card p-3 flex items-center gap-3">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
-            style={{ background: 'linear-gradient(135deg, #2D6A4F, #52B788)' }}
+            style={{ background: userRole === 'doctor' ? 'linear-gradient(135deg, #A07C3A, #D4A96A)' : 'linear-gradient(135deg, #2D6A4F, #52B788)' }}
           >
-            خ
+            {userRole === 'doctor' ? 'ط' : 'خ'}
           </div>
           <div className="flex-1 min-w-0 text-right">
             <div className="font-semibold text-sm truncate" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>
-              خالد العمري
+              {userRole === 'doctor' ? 'د. أحمد صبحي' : 'خالد العمري'}
             </div>
             <div className="text-[11px]" style={{ color: '#8FA89B' }}>
-              JO-2026-KHL-4821
+              {userRole === 'doctor' ? 'Hakeem Provider' : 'JO-2026-KHL-4821'}
             </div>
           </div>
-          <div className="text-xs font-bold" style={{ color: '#52B788' }}>74</div>
+          {userRole !== 'doctor' && <div className="text-xs font-bold" style={{ color: '#52B788' }}>74</div>}
         </div>
       </div>
     </aside>

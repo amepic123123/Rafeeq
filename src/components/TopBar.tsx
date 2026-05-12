@@ -112,9 +112,9 @@ export default function TopBar({ activeView, caregiverMode, onCaregiverToggle, u
         }}
         title="تسجيل الخروج (Logout)"
         className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold transition-transform hover:scale-110 shrink-0"
-        style={{ background: 'linear-gradient(135deg, #2D6A4F, #52B788)' }}
+        style={{ background: userRole === 'doctor' ? 'linear-gradient(135deg, #A07C3A, #D4A96A)' : 'linear-gradient(135deg, #2D6A4F, #52B788)' }}
       >
-        خ
+        {userRole === 'doctor' ? 'ط' : 'خ'}
       </button>
     </header>
   );
