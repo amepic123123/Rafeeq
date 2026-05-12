@@ -6,7 +6,7 @@ load_dotenv()
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Rafeeq AI"
-    API_V1_STR: str = "/api/v1"
+    API_V1_STR: str = "/api"
     
     # DB
     POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
