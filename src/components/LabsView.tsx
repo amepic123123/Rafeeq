@@ -4,6 +4,7 @@ import { useHbA1cHistory, useBloodPressureHistory, useMedications, Skeleton } fr
 import {
   LineChart, Line, AreaChart, Area, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
+  BarChart, Bar, Cell
 } from 'recharts';
 
 interface LabsViewProps {
@@ -30,14 +31,14 @@ const CustomTooltip = ({ active, payload, label }: {
   return null;
 };
 
-const timelineSlots = [
-  { label: 'السحور',    icon: '🌙', time: '03:30', color: '#8B5CF6', type: 'suhoor'     },
-  { label: 'بعد السحور', icon: '💊', time: '03:45', color: '#2D6A4F', type: 'suhoor-med' },
-  { label: 'الفجر',    icon: '🕌', time: '04:15', color: '#8B5CF6', type: 'prayer'     },
-  { label: 'الإفطار',  icon: '🌅', time: '19:00', color: '#F97316', type: 'iftar'      },
-  { label: 'مع الإفطار', icon: '💊', time: '19:15', color: '#2D6A4F', type: 'iftar-med'  },
-  { label: 'بعد الإفطار', icon: '💊', time: '19:30', color: '#2D6A4F', type: 'iftar-med2' },
-  { label: 'النوم',    icon: '😴', time: '23:30', color: '#4A6357', type: 'sleep'      },
+const activityData = [
+  { day: 'السبت', steps: 4200 },
+  { day: 'الأحد', steps: 5100 },
+  { day: 'الإثنين', steps: 4800 },
+  { day: 'الثلاثاء', steps: 6420 },
+  { day: 'الأربعاء', steps: 5900 },
+  { day: 'الخميس', steps: 7200 },
+  { day: 'الجمعة', steps: 4500 },
 ];
 
 export default function LabsView({ patientId }: LabsViewProps = {}) {
@@ -118,46 +119,68 @@ export default function LabsView({ patientId }: LabsViewProps = {}) {
         </div>
       </div>
 
-      {/* Ramadan Timeline */}
+      {/* Activity Tracker */}
       <div className="glass-card p-5 fade-up-3">
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="font-semibold" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>🌙 جدول الدواء الرمضاني</h3>
-          <span className="text-xs px-3 py-1.5 rounded-full font-medium" style={{ background: 'rgba(249,115,22,0.10)', color: '#F97316', fontFamily: "'IBM Plex Sans Arabic'" }}>معدّل لرمضان</span>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="font-semibold text-base" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>🏃‍♂️ تحليل النشاط البدني</h3>
+            <p className="text-xs mt-0.5" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>معدل الخطوات اليومي · الهدف: 6,000 خطوة</p>
+          </div>
+          <div className="text-left">
+            <div className="text-lg font-bold" style={{ color: '#2D6A4F', fontFamily: "'Inter'" }}>6,420</div>
+            <div className="text-[10px]" style={{ color: '#22C55E' }}>+12% عن الأسبوع الماضي</div>
+          </div>
         </div>
 
-        <div className="relative">
-          <div className="absolute right-[22px] top-0 bottom-0 w-0.5" style={{ background: 'linear-gradient(to bottom, rgba(139,92,246,0.3), rgba(249,115,22,0.3), rgba(45,106,79,0.15))' }} />
-          <div className="space-y-4">
-            {timelineSlots.map((slot, i) => {
-              const medsForSlot = lMeds ? [] : (medications ?? []).filter(m =>
-                (slot.type.startsWith('iftar') && m.timing === 'iftar') ||
-                (slot.type.startsWith('suhoor') && m.timing === 'suhoor')
-              );
-              return (
-                <div key={slot.type + i} className="flex items-start gap-4 pr-2">
-                  <div className="relative flex items-center justify-center w-11 h-11 shrink-0">
-                    <div className="w-4 h-4 rounded-full z-10" style={{ background: slot.color, boxShadow: `0 0 0 4px ${slot.color}25` }} />
-                  </div>
-                  <div className="flex-1 pb-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-base">{slot.icon}</span>
-                      <span className="font-medium text-sm" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>{slot.label}</span>
-                      <span className="text-xs mr-auto" style={{ color: '#8FA89B', fontFamily: "'Inter'" }}>{slot.time}</span>
-                    </div>
-                    {medsForSlot.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mr-8">
-                        {medsForSlot.map(m => (
-                          <div key={m.id} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs" style={{ background: `${m.color}12`, border: `1px solid ${m.color}25`, color: m.color, fontFamily: "'IBM Plex Sans Arabic'" }}>
-                            <div className="w-2 h-2 rounded-full" style={{ background: m.color }} />
-                            {m.name}
-                          </div>
-                        ))}
+        <div className="h-48 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={activityData}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.04)" />
+              <XAxis 
+                dataKey="day" 
+                tick={{ fontSize: 10, fill: '#8FA89B', fontFamily: 'IBM Plex Sans Arabic' }} 
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis hide />
+              <Tooltip 
+                cursor={{ fill: 'rgba(82,183,136,0.05)' }}
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="glass-card px-3 py-2 text-xs" style={{ fontFamily: "'Inter'" }}>
+                        <div className="font-bold">{payload[0].value} خطوة</div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Bar 
+                dataKey="steps" 
+                radius={[6, 6, 0, 0]}
+                barSize={32}
+              >
+                {activityData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={entry.steps >= 6000 ? '#52B788' : '#D4A96A'} 
+                    fillOpacity={0.8}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="flex justify-between mt-4 pt-4 border-t border-black/5">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-[#52B788]" />
+            <span className="text-[10px]" style={{ color: '#8FA89B' }}>تم تحقيق الهدف</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-[#D4A96A]" />
+            <span className="text-[10px]" style={{ color: '#8FA89B' }}>أقل من الهدف</span>
           </div>
         </div>
       </div>

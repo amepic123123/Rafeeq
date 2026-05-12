@@ -129,15 +129,6 @@ async def get_insights(patientId: str, db: AsyncSession = Depends(get_db)):
             "severity": "green"
         })
         
-    insights.append({
-        "id": 2,
-        "emoji": "🌙",
-        "textAr": "بما إنه رمضان قرّب، تم تعديل أوقات أدويتك.",
-        "textEn": "Ramadan timings applied.",
-        "time": "قبل 5 ساعات",
-        "tag": "أدوية",
-        "severity": "blue"
-    })
     
     return success_response(insights)
 
@@ -241,10 +232,12 @@ async def get_family(patientId: str):
             "id": "JO-FAM-01",
             "nameAr": "سارة العمري",
             "nameEn": "Sara Al-Omari",
-            "relation": "daughter",
+            "role": "daughter",
             "age": 22,
             "healthScore": 95,
-            "alerts": 0
+            "alerts": 0,
+            "avatar": "س",
+            "color": "#F472B6"
         }
     ])
 

@@ -42,36 +42,40 @@ export default function FamilyView() {
               const radius = 28;
               const circ   = 2 * Math.PI * radius;
               const offset = circ - (member.healthScore / 100) * circ;
+              const memberColor = member.color || '#52B788';
+              const memberAvatar = member.avatar || (member.nameAr ? member.nameAr[0] : 'ع');
+              const memberRole = member.role || (member as any).relation || 'other';
+
               return (
                 <div
                   key={member.id}
                   className={`glass-card p-5 flex flex-col items-center text-center cursor-pointer transition-all hover:scale-105 hover:-translate-y-1 fade-up-${i + 2}`}
-                  style={{ borderTop: `3px solid ${member.color}` }}
+                  style={{ borderTop: `3px solid ${memberColor}` }}
                 >
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold mb-3 shadow-lg" style={{ background: `linear-gradient(135deg, ${member.color}CC, ${member.color})` }}>
-                    {member.avatar}
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold mb-3 shadow-lg" style={{ background: `linear-gradient(135deg, ${memberColor}CC, ${memberColor})` }}>
+                    {memberAvatar}
                   </div>
                   <div className="font-semibold text-sm mb-0.5" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>{member.nameAr}</div>
-                  <div className="text-xs mb-3" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>{roleLabels[member.role]?.ar}</div>
+                  <div className="text-xs mb-3" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>{roleLabels[memberRole]?.ar || 'أخرى'}</div>
 
                   {/* Mini gauge */}
                   <div className="relative mb-3">
                     <svg width="70" height="70" viewBox="0 0 70 70">
                       <circle cx="35" cy="35" r={radius} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="6" />
-                      <circle cx="35" cy="35" r={radius} fill="none" stroke={member.color} strokeWidth="6" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset} transform="rotate(-90 35 35)" style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(0.34,1.56,0.64,1)' }} />
+                      <circle cx="35" cy="35" r={radius} fill="none" stroke={memberColor} strokeWidth="6" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset} transform="rotate(-90 35 35)" style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(0.34,1.56,0.64,1)' }} />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className="text-lg font-bold" style={{ color: '#1A2B22', fontFamily: "'Inter'" }}>{member.healthScore}</span>
                     </div>
                   </div>
 
-                  <span className="text-xs px-3 py-1 rounded-full font-medium" style={{ background: `${member.color}15`, color: member.color, fontFamily: "'IBM Plex Sans Arabic'" }}>
+                  <span className="text-xs px-3 py-1 rounded-full font-medium" style={{ background: `${memberColor}15`, color: memberColor, fontFamily: "'IBM Plex Sans Arabic'" }}>
                     {member.healthScore >= 90 ? 'ممتاز 🌟' : member.healthScore >= 75 ? 'جيد جداً ✅' : 'يحتاج متابعة ⚠️'}
                   </span>
 
                   <div className="flex gap-2 mt-3 w-full">
-                    <button className="flex-1 py-1.5 rounded-xl text-[11px] font-medium transition-all hover:opacity-80" style={{ background: `${member.color}12`, color: member.color, fontFamily: "'IBM Plex Sans Arabic'" }}>الملف</button>
-                    <button className="flex-1 py-1.5 rounded-xl text-[11px] font-medium transition-all hover:opacity-80" style={{ background: `${member.color}12`, color: member.color, fontFamily: "'IBM Plex Sans Arabic'" }}>سجل</button>
+                    <button className="flex-1 py-1.5 rounded-xl text-[11px] font-medium transition-all hover:opacity-80" style={{ background: `${memberColor}12`, color: memberColor, fontFamily: "'IBM Plex Sans Arabic'" }}>الملف</button>
+                    <button className="flex-1 py-1.5 rounded-xl text-[11px] font-medium transition-all hover:opacity-80" style={{ background: `${memberColor}12`, color: memberColor, fontFamily: "'IBM Plex Sans Arabic'" }}>سجل</button>
                   </div>
                 </div>
               );

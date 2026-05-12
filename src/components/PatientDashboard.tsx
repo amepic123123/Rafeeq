@@ -18,7 +18,6 @@ export default function PatientDashboard({ caregiverMode }: PatientDashboardProp
     ? [
         { label: 'HbA1c',     value: quickStats.hba1c,         delta: quickStats.hba1cDelta,          good: quickStats.hba1cGood         },
         { label: 'ضغط الدم',   value: quickStats.bloodPressure, delta: quickStats.bloodPressureDelta,  good: quickStats.bloodPressureGood  },
-        { label: 'أدوية اليوم', value: quickStats.medicationToday, delta: quickStats.medicationDelta,  good: quickStats.medicationGood     },
       ]
     : [];
 
@@ -67,7 +66,7 @@ export default function PatientDashboard({ caregiverMode }: PatientDashboardProp
             {/* Quick stats row */}
             <div className="flex flex-wrap gap-3">
               {lStats
-                ? [1, 2, 3].map(i => <Skeleton key={i} h="h-14" className="w-20" />)
+                ? [1, 2].map(i => <Skeleton key={i} h="h-14" className="w-20" />)
                 : statItems.map(stat => (
                     <div key={stat.label} className="px-3 py-2 rounded-xl text-center" style={{ background: 'rgba(45,106,79,0.06)', minWidth: 80 }}>
                       <div className="text-xs mb-0.5" style={{ color: '#8FA89B', fontFamily: "'Inter'" }}>{stat.label}</div>
@@ -146,11 +145,6 @@ export default function PatientDashboard({ caregiverMode }: PatientDashboardProp
                       <div className="font-medium text-sm truncate" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>{med.name}</div>
                       <div className="text-xs" style={{ color: '#4A6357' }}>{med.dose}</div>
                     </div>
-                    {med.ramadan && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0" style={{ background: 'rgba(249,115,22,0.10)', color: '#F97316' }}>
-                        🌙 رمضان
-                      </span>
-                    )}
                   </div>
                 ))
             }
