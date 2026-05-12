@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import LoginPage from '@/components/LoginPage';
 import Sidebar from '@/components/Sidebar';
 import TopBar from '@/components/TopBar';
@@ -15,19 +16,34 @@ export type View = 'dashboard' | 'chat' | 'labs' | 'doctor' | 'family';
 export type UserRole = 'patient' | 'doctor';
 
 export default function RafeeqApp() {
+  const router = useRouter();
+  const pathname = usePathname();
+  
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [activeView, setActiveView] = useState<View>('dashboard');
   const [caregiverMode, setCaregiverMode] = useState(false);
 
+  // Derive active view from URL
+  const pathSegment = pathname?.split('/')[1] || '';
+  const validViews = ['dashboard', 'chat', 'labs', 'doctor', 'family'];
+  const isValidView = validViews.includes(pathSegment);
+  const activeView: View = isValidView ? (pathSegment as View) : 'dashboard';
+
   const handleViewChange = useCallback((view: View) => {
-    setActiveView(view);
-  }, []);
+    router.push(`/${view}`);
+  }, [router]);
+
+  // Redirect invalid paths
+  useEffect(() => {
+    if (userRole && !isValidView && pathname !== '/') {
+      router.replace('/dashboard');
+    }
+  }, [pathname, isValidView, userRole, router]);
 
   // ── Login Gate ──────────────────────────────────────────────────
   if (!userRole) {
     return <LoginPage onLogin={(role) => {
       setUserRole(role);
-      setActiveView(role === 'doctor' ? 'doctor' : 'dashboard');
+      router.push(role === 'doctor' ? '/doctor' : '/dashboard');
     }} />;
   }
 
