@@ -103,9 +103,14 @@ export default function TopBar({ activeView, caregiverMode, onCaregiverToggle, u
         </button>
       )}
 
-      {/* Profile switcher */}
+      {/* Profile switcher / Logout */}
       <button
         id="profile-switcher"
+        onClick={() => {
+          localStorage.removeItem('rafeeq_userRole');
+          window.location.href = '/';
+        }}
+        title="تسجيل الخروج (Logout)"
         className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold transition-transform hover:scale-110 shrink-0"
         style={{ background: 'linear-gradient(135deg, #2D6A4F, #52B788)' }}
       >

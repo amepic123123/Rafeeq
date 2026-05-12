@@ -20,7 +20,15 @@ export default function RafeeqApp() {
   const pathname = usePathname();
   
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [caregiverMode, setCaregiverMode] = useState(false);
+
+  // Restore session from localStorage
+  useEffect(() => {
+    const savedRole = localStorage.getItem('rafeeq_userRole') as UserRole | null;
+    if (savedRole) setUserRole(savedRole);
+    setIsInitializing(false);
+  }, []);
 
   // Derive active view from URL
   const pathSegment = pathname?.split('/')[1] || '';
@@ -40,8 +48,13 @@ export default function RafeeqApp() {
   }, [pathname, isValidView, userRole, router]);
 
   // ── Login Gate ──────────────────────────────────────────────────
+  if (isInitializing) {
+    return <div className="h-screen flex items-center justify-center bg-[#F8F4F0]" />;
+  }
+
   if (!userRole) {
     return <LoginPage onLogin={(role) => {
+      localStorage.setItem('rafeeq_userRole', role);
       setUserRole(role);
       router.push(role === 'doctor' ? '/doctor' : '/dashboard');
     }} />;
