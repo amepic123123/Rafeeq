@@ -281,8 +281,7 @@ async def post_chat_message(
     try:
         profile = await get_profile(db, patientId)
         message = request_data.get("message", "")
-        
-        print(f"INFO: Generating AI response for {patientId}. Message: {message[:50]}...")
+        print(f"INFO: Generating AI response for {patientId}. Message: [Message omitted to avoid encoding errors]")
         
         rag = RAGService(qdrant)
         ai_text = await rag.generate_response(

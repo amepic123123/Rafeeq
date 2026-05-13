@@ -50,20 +50,43 @@ class RAGService:
         print(f"DEBUG: Found {len(search_result.points)} context hits. Context length: {len(context)}")
         return context
 
+    async def retrieve_general_knowledge(self, query: str) -> str:
+        if self.mock_mode:
+            return ""
+
+        query_vector = await self.embeddings.aembed_query(query)
+        
+        collections = await self.qdrant.get_collections()
+        if not any(c.name == "medical_knowledge" for c in collections.collections):
+            return ""
+
+        search_result = await self.qdrant.query_points(
+            collection_name="medical_knowledge",
+            query=query_vector,
+            limit=3
+        )
+        
+        context = "\n".join([hit.payload.get("raw_text", "") for hit in search_result.points if hit.score > 0.4])
+        return context
+
     async def generate_response(self, patient_id: str, query: str, session_id: str) -> str:
         context = await self.retrieve_context(patient_id, query)
+        general_knowledge = await self.retrieve_general_knowledge(query)
         
         if self.mock_mode:
             return f"(Mock Response) بناءً على ملفك الطبي، يبدو أن السكر التراكمي لديك مرتفع قليلاً (8.2%). يجب عليك الالتزام بالدواء واستشارة الطبيب قريباً. سؤالك كان: {query}"
 
         prompt = f"""
         You are Rafeeq (رفيق), an AI healthcare assistant for the Jordanian Hakeem system.
-        Answer the patient's question based ONLY on their medical records below.
-        If the answer is not in the records, say "I don't have that information."
+        Answer the patient's question based on their medical records and the provided general medical knowledge.
+        If the answer is not in the records or knowledge base, say "I don't have that information."
         Answer warmly in Arabic, using Jordanian dialect where appropriate.
 
         MEDICAL RECORDS:
         {context}
+
+        GENERAL MEDICAL KNOWLEDGE (from WHO/OpenFDA/Wikipedia):
+        {general_knowledge}
         """
         
         messages = [
