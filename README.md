@@ -54,7 +54,7 @@ This repo contains the **Next.js frontend** for that prototype. It talks to the 
 You **do not** need to install PostgreSQL, Redis, or Qdrant manually.
 
 ```bash
-cd /home/runner/work/front/front/backend
+cd backend
 export OPENAI_API_KEY=your_key_here
 docker compose up --build
 ```
@@ -69,7 +69,7 @@ This compose file lives at `backend/docker-compose.yml` and defines:
 ### 2) Run the frontend
 
 ```bash
-cd /home/runner/work/front/front
+cd ..
 npm ci
 npm run dev
 ```
