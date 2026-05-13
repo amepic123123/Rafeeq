@@ -10,8 +10,9 @@ import DoctorView from '@/components/DoctorView';
 import ChatView from '@/components/ChatView';
 import LabsView from '@/components/LabsView';
 import FamilyView from '@/components/FamilyView';
+import AllergiesView from '@/components/AllergiesView';
 
-export type View = 'dashboard' | 'chat' | 'labs' | 'doctor' | 'family';
+export type View = 'dashboard' | 'chat' | 'labs' | 'doctor' | 'family' | 'allergies';
 
 export type UserRole = 'patient' | 'doctor';
 
@@ -35,7 +36,7 @@ export default function RafeeqApp() {
   const pathSegment = pathname?.split('/')[1] || '';
   const validViews = userRole === 'doctor' 
     ? ['doctor'] 
-    : ['dashboard', 'chat', 'labs', 'family'];
+    : ['dashboard', 'chat', 'labs', 'family', 'allergies'];
   const isValidView = validViews.includes(pathSegment);
   const defaultView = userRole === 'doctor' ? 'doctor' : 'dashboard';
   const activeView: View = isValidView ? (pathSegment as View) : defaultView;
@@ -94,6 +95,7 @@ export default function RafeeqApp() {
             <ChatView patientId={activePatientId || undefined} />
           )}
           {activeView === 'labs'      && <LabsView patientId={activePatientId || undefined} />}
+          {activeView === 'allergies' && <AllergiesView />}
           {activeView === 'family'    && <FamilyView patientId={activePatientId || undefined} />}
         </main>
       </div>

@@ -94,7 +94,7 @@ def build_mock_patients(count, seed=42):
         full_name = f"{rng.choice(first_names)} {rng.choice(last_names)}"
         cond_count = rng.randint(1, 3)
         med_count = rng.randint(0, 3)
-        allergy_count = rng.randint(0, 2)
+        allergy_count = rng.randint(1, 2)
         hba1c_vals = [round(rng.uniform(5.0, 9.0), 1) for _ in range(rng.randint(2, 4))]
         bp_vals = [(rng.randint(105, 160), rng.randint(65, 100)) for _ in range(rng.randint(2, 4))]
 
@@ -103,7 +103,7 @@ def build_mock_patients(count, seed=42):
             "name": full_name,
             "conditions": rng.sample(conditions_pool, cond_count),
             "medications": rng.sample(medications_pool, med_count),
-            "allergies": [(rng.choice(allergies_pool), rng.choice(severities)) for _ in range(allergy_count)],
+            "allergies": [(a, rng.choice(severities)) for a in rng.sample(allergies_pool, allergy_count)],
             "hba1c": hba1c_vals,
             "bp": bp_vals,
             "seed_rng": rng

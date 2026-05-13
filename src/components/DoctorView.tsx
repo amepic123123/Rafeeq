@@ -27,6 +27,8 @@ export default function DoctorView({ selectedPatient: propSelectedPatient, onPat
   const [symptoms, setSymptoms] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+  const [consultFile, setConsultFile] = useState<File | null>(null);
+  const [consultError, setConsultError] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [dictationLang, setDictationLang] = useState<'ar-JO' | 'en-AE'>('ar-JO');
   const recognitionRef = useRef<any>(null);
@@ -81,6 +83,9 @@ export default function DoctorView({ selectedPatient: propSelectedPatient, onPat
       }
       setSearchStatus('found');
       setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('rafeeq_active_patient_id', query);
+        }
         setSelectedPatient(query);
         if (onPatientSelect) onPatientSelect(query);
       }, 300);
@@ -95,6 +100,9 @@ export default function DoctorView({ selectedPatient: propSelectedPatient, onPat
   };
 
   const handleBack = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('rafeeq_active_patient_id');
+    }
     setSelectedPatient(null);
     if (onPatientSelect) onPatientSelect(null);
     setSearchQuery('');
@@ -103,6 +111,8 @@ export default function DoctorView({ selectedPatient: propSelectedPatient, onPat
     setInnerTab('overview');
     setSymptoms('');
     setAiSuggestion(null);
+    setConsultFile(null);
+    setConsultError(null);
     reset();
   };
 
@@ -110,15 +120,13 @@ export default function DoctorView({ selectedPatient: propSelectedPatient, onPat
     if (!symptoms.trim() || !selectedPatient) return;
     setIsAiLoading(true);
     setAiSuggestion(null);
+    setConsultError(null);
     try {
-      const response = await api.sendChatMessage(selectedPatient, { 
-        patientId: selectedPatient, 
-        message: `DOCTOR_CONSULT: ${symptoms}`, 
-        lang: 'ar' 
-      });
+      const response = await api.doctorConsult(selectedPatient, symptoms, consultFile);
       setAiSuggestion(response.textAr);
     } catch (err) {
-      setAiSuggestion("حدث خطأ أثناء الاتصال بنظام الذكاء الاصطناعي.");
+      setConsultError(err instanceof Error ? err.message : 'حدث خطأ أثناء الاتصال بنظام الذكاء الاصطناعي.');
+      setAiSuggestion("تعذّر تحليل الطلب. الرجاء المحاولة مرة أخرى.");
     } finally {
       setIsAiLoading(false);
     }
@@ -270,7 +278,13 @@ export default function DoctorView({ selectedPatient: propSelectedPatient, onPat
                 : (recentPatients || []).map((p, i) => (
                   <div
                     key={p.id}
-                    onClick={() => setSelectedPatient(p.id)}
+                    onClick={() => {
+                      if (typeof window !== 'undefined') {
+                        localStorage.setItem('rafeeq_active_patient_id', p.id);
+                      }
+                      setSelectedPatient(p.id);
+                      if (onPatientSelect) onPatientSelect(p.id);
+                    }}
                     className={`glass-card p-5 cursor-pointer hover:-translate-y-1 hover:shadow-md transition-all duration-300 fade-up-${i+4}`}
                   >
                     <div className="flex items-center gap-3 mb-4 border-b pb-3 border-emerald-50">
@@ -486,6 +500,30 @@ export default function DoctorView({ selectedPatient: propSelectedPatient, onPat
         </div>
       </div>
 
+      {/* Allergies Snapshot */}
+      <div className="glass-card p-5 fade-up-3">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>🧫 الحساسيّات المسجّلة</h3>
+          <span className="text-xs" style={{ color: '#8FA89B' }}>Hakeem</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {lPatient
+            ? [1, 2, 3].map(i => <Skeleton key={i} h="h-7" className="w-24" />)
+            : (patient?.allergies ?? []).length
+              ? (patient?.allergies ?? []).map((a, i) => (
+                  <span
+                    key={`${a}-${i}`}
+                    className="text-xs px-2 py-0.5 rounded-full"
+                    style={{ background: 'rgba(239,68,68,0.08)', color: '#B91C1C', border: '1px solid rgba(239,68,68,0.2)', fontFamily: "'IBM Plex Sans Arabic'" }}
+                  >
+                    {a}
+                  </span>
+                ))
+              : <span className="text-xs" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>لا توجد حساسيات مسجلة</span>
+          }
+        </div>
+      </div>
+
       {/* Hakeem Sync */}
       <div className="glass-card p-5 fade-up-4">
         <div className="flex items-center justify-between mb-5">
@@ -594,6 +632,23 @@ export default function DoctorView({ selectedPatient: propSelectedPatient, onPat
                 {dictationLang === 'ar-JO' ? 'عربي' : 'EN'}
               </button>
             </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="text-xs font-semibold" style={{ color: '#4A6357', fontFamily: "'IBM Plex Sans Arabic'" }}>
+                إرفاق أشعة/تحاليل (PNG/JPG/PDF):
+              </label>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,application/pdf"
+                onChange={(e) => setConsultFile(e.target.files?.[0] || null)}
+                className="text-xs"
+              />
+              {consultFile && (
+                <span className="text-[11px]" style={{ color: '#2D6A4F', fontFamily: "'Inter'" }}>
+                  {consultFile.name}
+                </span>
+              )}
+            </div>
             
             <button
               onClick={handleAiConsult}
@@ -604,12 +659,18 @@ export default function DoctorView({ selectedPatient: propSelectedPatient, onPat
               {isAiLoading ? (
                 <>
                   <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                  جاري تحليل البيانات (RAG)...
+                  جاري تحليل البيانات...
                 </>
               ) : (
                 <>استشارة الذكاء الاصطناعي</>
               )}
             </button>
+
+            {consultError && (
+              <div className="text-xs text-red-500" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>
+                {consultError}
+              </div>
+            )}
 
             {aiSuggestion && (
               <div className="mt-6 p-5 rounded-2xl border" style={{ background: 'rgba(45,106,79,0.03)', borderColor: 'rgba(45,106,79,0.1)' }}>

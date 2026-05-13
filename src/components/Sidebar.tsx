@@ -29,6 +29,12 @@ const navItems: { id: View; iconSvg: string; labelAr: string; labelEn: string }[
     labelEn: 'Lab Analytics',
   },
   {
+    id: 'allergies',
+    iconSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3 0 6 2 6 5 0 2.5-1.7 4.2-4 5.4-1.6.8-2 1.6-2 2.6v1"/><circle cx="12" cy="20" r="1"/></svg>`,
+    labelAr: 'الحساسيات',
+    labelEn: 'Allergies',
+  },
+  {
     id: 'doctor',
     iconSvg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`,
     labelAr: 'المساعد الطبي',

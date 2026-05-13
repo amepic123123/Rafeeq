@@ -47,7 +47,9 @@ function useFetch<T>(fetcher: () => Promise<T>, skip = false): FetchState<T> {
 
 export const getCurrentPatientId = () => {
   if (typeof window === 'undefined') return '';
-  return localStorage.getItem('rafeeq_nationalId') || '';
+  return localStorage.getItem('rafeeq_active_patient_id')
+    || localStorage.getItem('rafeeq_nationalId')
+    || '';
 };
 
 export function usePatient(patientId: string = getCurrentPatientId()): FetchState<Patient> {

@@ -6,6 +6,7 @@ export function generateStaticParams() {
     { view: ['dashboard'] },
     { view: ['chat'] },
     { view: ['labs'] },
+    { view: ['allergies'] },
     { view: ['family'] },
     { view: ['doctor'] },
   ];

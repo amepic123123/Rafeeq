@@ -1,10 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from datetime import datetime, timezone
+import base64
+import io
+from random import Random
+import hashlib
 from typing import Dict, Any, List
 from pydantic import BaseModel
+from pypdf import PdfReader
+from PIL import Image
+from openai import AsyncOpenAI
 
 from app.db.vector_store import get_qdrant
 from app.services.rag_service import RAGService
@@ -12,6 +19,7 @@ from app.services.rag_service import RAGService
 from app.db.session import get_db
 from app.models.user import User
 from app.models.patient import PatientProfile
+from app.core.config import settings
 
 router = APIRouter()
 prescription_router = APIRouter()
@@ -22,6 +30,313 @@ def success_response(data: Any) -> Dict[str, Any]:
         "data": data,
         "message": None,
         "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+def build_family_members(profile: PatientProfile) -> List[Dict[str, Any]]:
+    seed_src = (profile.user.national_id if profile.user and profile.user.national_id else profile.id)
+    seed = int(hashlib.md5(seed_src.encode("utf-8")).hexdigest()[:8], 16)
+    rng = Random(seed)
+
+    first_names = [
+        "سارة", "ليلى", "نور", "هبة", "لمى", "رنا", "هند", "ريم",
+        "أحمد", "عمر", "يوسف", "حسن", "رامي", "طارق", "بلال", "فراس"
+    ]
+    roles = ["spouse", "son", "daughter", "parent", "other"]
+    colors = ["#52B788", "#F59E0B", "#3B82F6", "#F472B6", "#8B5CF6", "#22C55E"]
+
+    last_name = ""
+    if profile.user and profile.user.full_name_ar:
+        parts = profile.user.full_name_ar.split()
+        last_name = parts[-1] if parts else ""
+
+    count = rng.randint(2, 5)
+    members: List[Dict[str, Any]] = []
+    for i in range(count):
+        name = f"{rng.choice(first_names)} {last_name}".strip() or rng.choice(first_names)
+        role = rng.choice(roles)
+        score = rng.randint(60, 98)
+        color = colors[i % len(colors)]
+        avatar = name[0] if name else "ع"
+
+        members.append({
+            "id": f"{seed_src}-fam-{i+1}",
+            "nameAr": name,
+            "role": role,
+            "avatar": avatar,
+            "color": color,
+            "healthScore": score
+        })
+
+    return members
+
+def build_doctor_consult_response(profile: PatientProfile, symptoms: str) -> str:
+    conditions = [c.name_ar or c.name for c in profile.conditions or []]
+    allergies = [a.allergen for a in profile.allergies or []]
+    meds = [m.name for m in profile.medications or [] if m.is_active]
+
+    hba1c_val = None
+    for lab in profile.lab_results or []:
+        if lab.test_name == "HbA1c":
+            try:
+                hba1c_val = float(lab.value)
+            except (TypeError, ValueError):
+                hba1c_val = None
+            break
+
+    bp_recent = None
+    systolic_recent = None
+    for v in sorted(profile.vitals or [], key=lambda x: x.recorded_at or datetime.min, reverse=True):
+        if v.systolic_bp and v.diastolic_bp:
+            bp_recent = f"{v.systolic_bp}/{v.diastolic_bp}"
+            systolic_recent = float(v.systolic_bp)
+            break
+
+    considerations = []
+    if any("سكر" in (c.name_ar or "") or "Diab" in c.name for c in profile.conditions or []):
+        considerations.append("مراجعة ضبط السكر والتأكد من الالتزام الدوائي")
+    if any("ضغط" in (c.name_ar or "") or "Hyper" in c.name for c in profile.conditions or []):
+        considerations.append("قياس ضغط الدم ومراجعة الجرعات الحالية")
+    if any("كل" in (c.name_ar or "") or "Kidney" in c.name for c in profile.conditions or []):
+        considerations.append("الانتباه للجرعات الدوائية مع وظيفة كلوية منخفضة")
+
+    possible_causes = []
+    symptom_lower = symptoms.lower()
+    if "صداع" in symptoms or "headache" in symptom_lower:
+        possible_causes.extend([
+            "ارتفاع ضغط الدم أو تذبذبه",
+            "جفاف أو نقص سوائل",
+            "إجهاد أو قلة نوم",
+            "صداع نصفي أو توتري"
+        ])
+    if "دوخة" in symptoms or "dizzy" in symptom_lower:
+        possible_causes.extend([
+            "هبوط ضغط أو اضطراب توازن سوائل",
+            "اضطراب سكر الدم",
+            "أثر جانبي دوائي"
+        ])
+
+    risk_flags = []
+    if hba1c_val is not None and hba1c_val >= 8.0:
+        risk_flags.append("خطر ضبط سكري غير كافٍ (HbA1c مرتفع)")
+    if systolic_recent is not None and systolic_recent >= 140:
+        risk_flags.append("خطر ارتفاع ضغط غير مضبوط")
+    if any("Kidney" in c.name or "كل" in (c.name_ar or "") for c in profile.conditions or []):
+        risk_flags.append("خطر اعتلال كلوي يستلزم انتباه دوائي")
+    if allergies:
+        risk_flags.append("خطر تفاعل دوائي/تحسسي محتمل بسبب سجل الحساسية")
+
+    solution_options = []
+    if "صداع" in symptoms or "headache" in symptom_lower:
+        solution_options.extend([
+            "تقييم ضغط الدم فوراً ومقارنته بالقراءات السابقة",
+            "مراجعة الأدوية الحالية لاحتمال أن تكون سبباً للصداع",
+            "التأكد من حالة الترطيب والنوم",
+        ])
+    if "دوخة" in symptoms or "dizzy" in symptom_lower:
+        solution_options.extend([
+            "قياس سكر الدم وضغط الدم أثناء الأعراض",
+            "مراجعة أدوية الضغط أو السكري لتعديل الجرعات عند اللزوم",
+        ])
+    if not solution_options:
+        solution_options.extend([
+            "إجراء فحص سريري موجّه للأعراض",
+            "ربط الأعراض بالتحاليل الأخيرة وتاريخ المريض",
+        ])
+
+    response_lines = [
+        "هذه قراءة سريرية سريعة مبنية على سجل المريض الحالي (ليست تشخيصاً نهائياً):",
+        f"الأعراض المدخلة: {symptoms.strip()}",
+        "",
+        "ملخص تاريخي سريع:",
+        f"- الحالات المزمنة: {', '.join(conditions) if conditions else 'لا يوجد'}",
+        f"- الأدوية النشطة: {', '.join(meds) if meds else 'لا يوجد'}",
+        f"- الحساسيّات: {', '.join(allergies) if allergies else 'لا يوجد'}",
+        f"- HbA1c الأخير: {hba1c_val if hba1c_val is not None else 'غير متوفر'}",
+        f"- ضغط الدم الأخير: {bp_recent if bp_recent else 'غير متوفر'}",
+        "",
+        "اعتبارات أولية للطبيب:",
+    ]
+
+    if considerations:
+        response_lines.extend([f"- {item}" for item in considerations])
+    else:
+        response_lines.append("- مراجعة العلامات الحيوية الأساسية وربطها بالأعراض")
+
+    response_lines.extend([
+        "",
+        "تشخيصات/تفسيرات محتملة (ليست نهائية):",
+    ])
+    if possible_causes:
+        response_lines.extend([f"- {item}" for item in possible_causes])
+    else:
+        response_lines.append("- تحتاج الأعراض لتفاصيل إضافية لتحديد الاحتمالات")
+
+    response_lines.extend([
+        "",
+        "مخاطر محتملة مرتبطة بالسجل:",
+    ])
+    if risk_flags:
+        response_lines.extend([f"- {item}" for item in risk_flags])
+    else:
+        response_lines.append("- لا توجد مخاطر واضحة من السجل الحالي")
+
+    response_lines.extend([
+        "",
+        "خيارات أولية للحل/التصرف:",
+    ])
+    response_lines.extend([f"- {item}" for item in solution_options])
+
+    response_lines.extend([
+        "",
+        "تنبيه: إذا كانت الأعراض شديدة أو متفاقمة، يُنصح بتقييم عاجل أو تحويل للطوارئ."
+    ])
+
+    return "\n".join(response_lines)
+
+def extract_pdf_text(file_bytes: bytes, max_pages: int = 3) -> str:
+    try:
+        reader = PdfReader(io.BytesIO(file_bytes))
+        pages = reader.pages[:max_pages]
+        chunks = []
+        for page in pages:
+            text = page.extract_text() or ""
+            chunks.append(text.strip())
+        return "\n".join([c for c in chunks if c])
+    except Exception:
+        return ""
+
+async def analyze_doctor_consult(profile: PatientProfile, symptoms: str, file: UploadFile | None) -> str:
+    if not settings.OPENAI_API_KEY:
+        return "⚠️ لم يتم إعداد مفتاح OpenAI بعد. الرجاء ضبط OPENAI_API_KEY."
+
+    client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+
+    conditions = [c.name_ar or c.name for c in profile.conditions or []]
+    allergies = [a.allergen for a in profile.allergies or []]
+    meds = [m.name for m in profile.medications or [] if m.is_active]
+
+    hba1c_val = None
+    for lab in profile.lab_results or []:
+        if lab.test_name == "HbA1c":
+            try:
+                hba1c_val = float(lab.value)
+            except (TypeError, ValueError):
+                hba1c_val = None
+            break
+
+    bp_recent = None
+    for v in sorted(profile.vitals or [], key=lambda x: x.recorded_at or datetime.min, reverse=True):
+        if v.systolic_bp and v.diastolic_bp:
+            bp_recent = f"{v.systolic_bp}/{v.diastolic_bp}"
+            break
+
+    base_prompt = (
+        "أنت مساعد طبي للأطباء. قدم قراءة سريرية موجزة مبنية على سجل المريض الحالي "
+        "والأعراض المدخلة، واقترح أسباب محتملة، مخاطر مرتبطة بالسجل، وخيارات عملية للتصرف. "
+        "لا تُصدر تشخيصاً نهائياً. اكتب بالعربية وبنقاط واضحة.\n\n"
+        f"الأعراض: {symptoms.strip()}\n"
+        f"الحالات المزمنة: {', '.join(conditions) if conditions else 'لا يوجد'}\n"
+        f"الأدوية النشطة: {', '.join(meds) if meds else 'لا يوجد'}\n"
+        f"الحساسيّات: {', '.join(allergies) if allergies else 'لا يوجد'}\n"
+        f"HbA1c الأخير: {hba1c_val if hba1c_val is not None else 'غير متوفر'}\n"
+        f"ضغط الدم الأخير: {bp_recent if bp_recent else 'غير متوفر'}\n"
+    )
+
+    if file is None:
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": base_prompt}],
+            max_tokens=900,
+            temperature=0.2,
+        )
+        return response.choices[0].message.content.strip()
+
+    file_bytes = await file.read()
+    content_type = (file.content_type or "").lower()
+    filename = (file.filename or "").lower()
+
+    if "pdf" in content_type or filename.endswith(".pdf"):
+        pdf_text = extract_pdf_text(file_bytes)
+        prompt = base_prompt + "\nنص التقرير المرفق (تحاليل/تقرير):\n" + (pdf_text or "[تعذر استخراج نص من PDF]")
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=900,
+            temperature=0.2,
+        )
+        return response.choices[0].message.content.strip()
+
+    image = Image.open(io.BytesIO(file_bytes)).convert("RGB")
+    buffer = io.BytesIO()
+    image.save(buffer, format="JPEG")
+    base64_image = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+    response = await client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": base_prompt + "\nالمرفق: صورة أشعة/مستند طبي."},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}",
+                            "detail": "high",
+                        },
+                    },
+                ],
+            }
+        ],
+        max_tokens=900,
+        temperature=0.2,
+    )
+    return response.choices[0].message.content.strip()
+
+def compute_health_score(profile: PatientProfile) -> Dict[str, Any]:
+    conditions_count = len(profile.conditions or [])
+    allergies_count = len(profile.allergies or [])
+    meds_active = len([m for m in profile.medications or [] if m.is_active])
+
+    hba1c_val = None
+    for lab in profile.lab_results or []:
+        if lab.test_name == "HbA1c":
+            try:
+                hba1c_val = float(lab.value)
+            except (TypeError, ValueError):
+                hba1c_val = None
+            break
+
+    has_high_bp = False
+    for v in profile.vitals or []:
+        if v.systolic_bp and v.diastolic_bp and (v.systolic_bp >= 140 or v.diastolic_bp >= 90):
+            has_high_bp = True
+            break
+
+    score = 92
+    score -= conditions_count * 5
+    score -= allergies_count * 3
+    if hba1c_val is not None:
+        if hba1c_val >= 8.5:
+            score -= 15
+        elif hba1c_val >= 7.0:
+            score -= 8
+    if has_high_bp:
+        score -= 6
+
+    score = max(40, min(98, score))
+
+    med_adherence = min(100, 60 + meds_active * 5)
+    activity = max(40, min(95, score - 10))
+    nutrition = max(40, min(95, score - 5))
+
+    return {
+        "overall": score,
+        "subMetrics": [
+            { "label": "التزام الدواء", "value": med_adherence, "color": "#22C55E" },
+            { "label": "نشاط بدني", "value": activity, "color": "#F59E0B" },
+            { "label": "تغذية", "value": nutrition, "color": "#52B788" }
+        ]
     }
 
 async def get_profile(db: AsyncSession, patient_id: str):
@@ -51,6 +366,7 @@ async def get_profile(db: AsyncSession, patient_id: str):
 @router.get("/{patientId}")
 async def get_patient_profile(patientId: str, db: AsyncSession = Depends(get_db)):
     profile = await get_profile(db, patientId)
+    score_data = compute_health_score(profile)
     
     age = 0
     if profile.date_of_birth:
@@ -65,7 +381,7 @@ async def get_patient_profile(patientId: str, db: AsyncSession = Depends(get_db)
         "nationalId": profile.user.national_id if profile.user else "N/A",
         "bloodType": profile.blood_type or "Unknown",
         "city": "عمّان",
-        "healthScore": 74,
+        "healthScore": score_data["overall"],
         "hakeemSynced": True,
         "lastSyncedAt": datetime.now(timezone.utc).isoformat(),
         "conditions": [c.name_ar or c.name for c in profile.conditions],
@@ -74,15 +390,8 @@ async def get_patient_profile(patientId: str, db: AsyncSession = Depends(get_db)
 
 @router.get("/{patientId}/health-score")
 async def get_health_score(patientId: str, db: AsyncSession = Depends(get_db)):
-    await get_profile(db, patientId) # Ensure patient exists
-    return success_response({
-        "overall": 74,
-        "subMetrics": [
-            { "label": "التزام الدواء", "value": 95, "color": "#22C55E" },
-            { "label": "نشاط بدني", "value": 55, "color": "#F59E0B" },
-            { "label": "تغذية", "value": 70, "color": "#52B788" }
-        ]
-    })
+    profile = await get_profile(db, patientId)
+    return success_response(compute_health_score(profile))
 
 @router.get("/{patientId}/quick-stats")
 async def get_quick_stats(patientId: str, db: AsyncSession = Depends(get_db)):
@@ -270,6 +579,17 @@ async def post_chat_message(
     try:
         profile = await get_profile(db, patientId)
         message = request_data.get("message", "")
+
+        if message.startswith("DOCTOR_CONSULT:"):
+            symptoms = message.replace("DOCTOR_CONSULT:", "", 1).strip()
+            ai_text = build_doctor_consult_response(profile, symptoms)
+            return success_response({
+                "id": int(datetime.now().timestamp()),
+                "role": "ai",
+                "textAr": ai_text,
+                "textEn": ai_text,
+                "time": datetime.now().strftime("%H:%M")
+            })
         
         print(f"INFO: Generating AI response for {patientId}. Message: {message[:50]}...")
         
@@ -310,20 +630,9 @@ async def get_suggested_prompts(patientId: str, db: AsyncSession = Depends(get_d
 
 @router.get("/{patientId}/family")
 async def get_family(patientId: str, db: AsyncSession = Depends(get_db)):
-    await get_profile(db, patientId)
-    return success_response([
-        {
-            "id": "JO-FAM-01",
-            "nameAr": "سارة العمري",
-            "nameEn": "Sara Al-Omari",
-            "role": "daughter",
-            "age": 22,
-            "healthScore": 95,
-            "alerts": 0,
-            "avatar": "س",
-            "color": "#F472B6"
-        }
-    ])
+    profile = await get_profile(db, patientId)
+    members = build_family_members(profile)
+    return success_response(members)
 
 @router.get("/doctor/recent-patients")
 async def get_recent_patients(db: AsyncSession = Depends(get_db)):
@@ -353,15 +662,35 @@ async def get_recent_patients(db: AsyncSession = Depends(get_db)):
 
 @router.get("/{patientId}/family/summary")
 async def get_family_summary(patientId: str, db: AsyncSession = Depends(get_db)):
-    await get_profile(db, patientId)
+    profile = await get_profile(db, patientId)
+    members = build_family_members(profile)
+    avg_score = int(sum(m["healthScore"] for m in members) / max(1, len(members)))
+    needs_attention = len([m for m in members if m["healthScore"] < 75])
     return success_response({
-        "avgHealthScore": 95,
-        "weeklyAppointments": 0,
-        "activeMedications": 1,
-        "pendingLabResults": 0,
-        "totalMembers": 1,
-        "needsAttention": 0,
+        "avgHealthScore": avg_score,
+        "weeklyAppointments": len(members) // 2,
+        "activeMedications": len(members),
+        "pendingLabResults": len([m for m in members if m["healthScore"] < 80]),
+        "totalMembers": len(members),
+        "needsAttention": needs_attention,
         "lastUpdate": datetime.now(timezone.utc).isoformat()
+    })
+
+@router.post("/{patientId}/doctor-consult")
+async def doctor_consult(
+    patientId: str,
+    symptoms: str = Form(...),
+    file: UploadFile | None = File(None),
+    db: AsyncSession = Depends(get_db)
+):
+    profile = await get_profile(db, patientId)
+    ai_text = await analyze_doctor_consult(profile, symptoms, file)
+    return success_response({
+        "id": int(datetime.now().timestamp()),
+        "role": "ai",
+        "textAr": ai_text,
+        "textEn": ai_text,
+        "time": datetime.now().strftime("%H:%M")
     })
 
 @prescription_router.post("/analyze")

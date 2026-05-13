@@ -186,6 +186,33 @@ export async function getSuggestedPrompts(patientId: string): Promise<SuggestedP
   return apiFetch<SuggestedPrompt[]>(`/api/patients/${patientId}/chat/suggested-prompts`);
 }
 
+export async function doctorConsult(
+  patientId: string,
+  symptoms: string,
+  file?: File | null,
+): Promise<ChatMessage> {
+  const formData = new FormData();
+  formData.append('symptoms', symptoms);
+  if (file) formData.append('file', file);
+
+  const res = await fetch(`${BASE_URL}/api/patients/${patientId}/doctor-consult`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => res.statusText);
+    throw new Error(`Consult failed: ${text}`);
+  }
+
+  const json: ApiResponse<ChatMessage> = await res.json();
+  if (!json.success) {
+    throw new Error(json.message ?? 'Consult returned success:false');
+  }
+
+  return json.data;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Family APIs
 // ─────────────────────────────────────────────────────────────────────────────

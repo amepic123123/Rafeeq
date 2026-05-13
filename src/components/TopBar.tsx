@@ -10,6 +10,7 @@ const viewTitles: Record<View, { ar: string; en: string }> = {
   labs:      { ar: 'تحليل التحاليل المخبرية', en: 'Lab Analytics' },
   doctor:    { ar: 'المساعد السريري للطبيب', en: "Doctor's Clinical View" },
   family:    { ar: 'وضع العائلة', en: 'Family Mode' },
+  allergies: { ar: 'الحساسيات', en: 'Allergies' },
 };
 
 interface TopBarProps {

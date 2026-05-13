@@ -1,8 +1,6 @@
 'use client';
 
-import { useFamilyMembers, useFamilySummary, Skeleton } from '@/lib/hooks';
-
-const PATIENT_ID = 'JO-2026-KHL-4821';
+import { getCurrentPatientId, useFamilyMembers, useFamilySummary, Skeleton } from '@/lib/hooks';
 
 const roleLabels: Record<string, { ar: string }> = {
   patient:  { ar: 'المريض'  },
@@ -13,9 +11,14 @@ const roleLabels: Record<string, { ar: string }> = {
   other:    { ar: 'أخرى'    },
 };
 
-export default function FamilyView() {
-  const { data: members, loading: lMembers } = useFamilyMembers(PATIENT_ID);
-  const { data: summary, loading: lSummary } = useFamilySummary(PATIENT_ID);
+interface FamilyViewProps {
+  patientId?: string;
+}
+
+export default function FamilyView({ patientId }: FamilyViewProps) {
+  const resolvedPatientId = patientId || getCurrentPatientId();
+  const { data: members, loading: lMembers } = useFamilyMembers(resolvedPatientId);
+  const { data: summary, loading: lSummary } = useFamilySummary(resolvedPatientId);
 
   const summaryStats = summary
     ? [

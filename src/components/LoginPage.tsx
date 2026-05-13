@@ -39,7 +39,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     try {
       if (roleOverride) {
         // Fast-path for demo buttons
-        const demoId = roleOverride === 'doctor' ? 'JO-1980-AHM-123' : 'JO-2026-KHL-4821';
+        const demoId = roleOverride === 'doctor' ? '1111111111' : 'JO-2026-KHL-4821';
         const demoPass = roleOverride === 'doctor' ? 'doctor123' : 'patient123';
         
         try {
@@ -56,7 +56,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           const res = await loginWithNationalId(nationalId, password);
           localStorage.setItem('rafeeq_token', res.access_token);
           localStorage.setItem('rafeeq_nationalId', nationalId);
-          const isDoctor = nationalId === 'JO-1980-AHM-123';
+          const isDoctor = nationalId === '1111111111';
           onLogin(isDoctor ? 'doctor' : 'patient');
         } else {
           // Sanad mock
