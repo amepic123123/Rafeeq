@@ -188,20 +188,6 @@ docker compose up --build
 ```
 
 ---
-
-## Current status
-
-This is an **insane hackathon MVP prototype** in the best way:
-
-- visually ambitious
-- product-heavy
-- Arabic-first
-- API-driven
-- demo-ready
-- still rough around the edges
-
-If you are touching this repo, optimize for:
-- fast iteration
 - strong demo storytelling
 - realistic healthcare workflows
 - keeping the Hakeem-integrated product fantasy intact
