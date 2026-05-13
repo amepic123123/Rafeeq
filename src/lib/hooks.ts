@@ -45,23 +45,28 @@ function useFetch<T>(fetcher: () => Promise<T>, skip = false): FetchState<T> {
 // Patient hooks
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function usePatient(patientId: string = 'JO-2026-KHL-4821'): FetchState<Patient> {
+export const getCurrentPatientId = () => {
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem('rafeeq_nationalId') || '';
+};
+
+export function usePatient(patientId: string = getCurrentPatientId()): FetchState<Patient> {
   return useFetch(() => api.getPatient(patientId), !patientId);
 }
 
-export function useHealthScore(patientId: string = 'JO-2026-KHL-4821'): FetchState<HealthScoreData> {
+export function useHealthScore(patientId: string = getCurrentPatientId()): FetchState<HealthScoreData> {
   return useFetch(() => api.getHealthScore(patientId), !patientId);
 }
 
-export function useQuickStats(patientId: string = 'JO-2026-KHL-4821'): FetchState<QuickStats> {
+export function useQuickStats(patientId: string = getCurrentPatientId()): FetchState<QuickStats> {
   return useFetch(() => api.getQuickStats(patientId), !patientId);
 }
 
-export function useInsights(patientId: string = 'JO-2026-KHL-4821'): FetchState<Insight[]> {
+export function useInsights(patientId: string = getCurrentPatientId()): FetchState<Insight[]> {
   return useFetch(() => api.getInsights(patientId), !patientId);
 }
 
-export function useMedications(patientId: string = 'JO-2026-KHL-4821'): FetchState<Medication[]> {
+export function useMedications(patientId: string = getCurrentPatientId()): FetchState<Medication[]> {
   return useFetch(() => api.getMedications(patientId), !patientId);
 }
 
@@ -69,11 +74,11 @@ export function useMedications(patientId: string = 'JO-2026-KHL-4821'): FetchSta
 // Lab hooks
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useHbA1cHistory(patientId: string = 'JO-2026-KHL-4821', months = 7): FetchState<HbA1cPoint[]> {
+export function useHbA1cHistory(patientId: string = getCurrentPatientId(), months = 7): FetchState<HbA1cPoint[]> {
   return useFetch(() => api.getHbA1cHistory(patientId, months), !patientId);
 }
 
-export function useBloodPressureHistory(patientId: string = 'JO-2026-KHL-4821', days = 7): FetchState<BPPoint[]> {
+export function useBloodPressureHistory(patientId: string = getCurrentPatientId(), days = 7): FetchState<BPPoint[]> {
   return useFetch(() => api.getBloodPressureHistory(patientId, days), !patientId);
 }
 
@@ -81,23 +86,81 @@ export function useBloodPressureHistory(patientId: string = 'JO-2026-KHL-4821', 
 // Doctor / clinical hooks
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useRiskFlags(patientId: string = 'JO-2026-KHL-4821'): FetchState<RiskFlag[]> {
+export function useRiskFlags(patientId: string = getCurrentPatientId()): FetchState<RiskFlag[]> {
   return useFetch(() => api.getRiskFlags(patientId), !patientId);
 }
 
-export function useHakeemHistory(patientId: string = 'JO-2026-KHL-4821', limit = 10): FetchState<HakeemEntry[]> {
+export function useHakeemHistory(patientId: string = getCurrentPatientId(), limit = 10): FetchState<HakeemEntry[]> {
   return useFetch(() => api.getHakeemHistory(patientId, limit), !patientId);
+}
+
+
+const RECENT_PATIENTS_KEY = 'rafeeq_recent_patients';
+
+export function useRecentPatients(): FetchState<any[]> {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(RECENT_PATIENTS_KEY);
+    if (saved) {
+      try {
+        setData(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse recent patients', e);
+      }
+    }
+    setLoading(false);
+
+    // Listen for storage changes in the same tab
+    const handleUpdate = () => {
+      const updated = localStorage.getItem(RECENT_PATIENTS_KEY);
+      if (updated) setData(JSON.parse(updated));
+    };
+    window.addEventListener('rafeeq_recent_update', handleUpdate);
+    return () => window.removeEventListener('rafeeq_recent_update', handleUpdate);
+  }, []);
+
+  return { data, loading, error: null };
+}
+
+export function addRecentPatient(patient: any) {
+  if (!patient || !patient.id) return;
+  
+  const saved = localStorage.getItem(RECENT_PATIENTS_KEY);
+  let list = saved ? JSON.parse(saved) : [];
+  
+  // Remove duplicate if exists
+  list = list.filter((p: any) => p.id !== patient.id);
+  
+  // Add to front
+  const entry = {
+    id: patient.id,
+    name: patient.nameAr || patient.name,
+    age: patient.age,
+    lastVisit: "اليوم، " + new Date().toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit' }),
+    status: "مراجعة",
+    initial: (patient.nameAr || patient.name || "ح")[0]
+  };
+  
+  list.unshift(entry);
+  
+  // Keep only last 10
+  list = list.slice(0, 10);
+  
+  localStorage.setItem(RECENT_PATIENTS_KEY, JSON.stringify(list));
+  window.dispatchEvent(new Event('rafeeq_recent_update'));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Chat hooks
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useChatHistory(patientId: string = 'JO-2026-KHL-4821'): FetchState<ChatMessage[]> {
+export function useChatHistory(patientId: string = getCurrentPatientId()): FetchState<ChatMessage[]> {
   return useFetch(() => api.getChatHistory(patientId), !patientId);
 }
 
-export function useSuggestedPrompts(patientId: string = 'JO-2026-KHL-4821'): FetchState<SuggestedPrompt[]> {
+export function useSuggestedPrompts(patientId: string = getCurrentPatientId()): FetchState<SuggestedPrompt[]> {
   return useFetch(() => api.getSuggestedPrompts(patientId), !patientId);
 }
 

@@ -126,6 +126,10 @@ export async function getHakeemHistory(patientId: string, limit = 10): Promise<H
   return apiFetch<HakeemEntry[]>(`/api/patients/${patientId}/hakeem-history?limit=${limit}`);
 }
 
+export async function getRecentPatients(): Promise<any[]> {
+  return apiFetch<any[]>('/api/patients/doctor/recent-patients');
+}
+
 export async function analyzePrescription(
   patientId: string,
   file: File,

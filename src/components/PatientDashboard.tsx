@@ -55,12 +55,12 @@ export default function PatientDashboard({ caregiverMode }: PatientDashboardProp
               <Skeleton h="h-7" className="w-48 mb-2" />
             ) : (
               <h2 className="text-xl font-bold mb-1" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>
-                صباح الخير، {patient?.nameAr?.split(' ')[0]}! ☀️
+                صباح الخير، {patient?.nameAr?.split(' ')[0] || 'NaN'}! ☀️
               </h2>
             )}
 
             <p className="text-sm mb-3" style={{ color: '#4A6357', fontFamily: "'IBM Plex Sans Arabic'" }}>
-              يومك الصحي يبدو ممتاز — سكرك مستقر وضغطك تحسّن الأسبوع هاد.
+              {lInsights ? '...' : insights?.[0]?.textAr || 'NaN'}
             </p>
 
             {/* Quick stats row */}
@@ -86,7 +86,7 @@ export default function PatientDashboard({ caregiverMode }: PatientDashboardProp
         {/* Health Score Gauge */}
         {lScore
           ? <div className="glass-card p-6 flex items-center justify-center"><Skeleton h="h-40" className="w-40 rounded-full" /></div>
-          : scoreData ? <HealthScore scoreData={scoreData} caregiverMode={caregiverMode} /> : <div className="glass-card p-6 flex items-center justify-center text-sm font-bold text-red-500" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>تعذر تحميل بيانات النسبة الصحية (API غير متاح)</div>
+          : scoreData ? <HealthScore scoreData={scoreData} caregiverMode={caregiverMode} /> : <div className="glass-card p-6 flex items-center justify-center text-sm font-bold text-red-500" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>NaN</div>
         }
       </div>
 

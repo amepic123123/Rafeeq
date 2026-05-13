@@ -22,6 +22,7 @@ export default function RafeeqApp() {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [caregiverMode, setCaregiverMode] = useState(false);
+  const [activePatientId, setActivePatientId] = useState<string | null>(null);
 
   // Restore session from localStorage
   useEffect(() => {
@@ -83,10 +84,17 @@ export default function RafeeqApp() {
 
         <main className="flex-1 overflow-auto">
           {activeView === 'dashboard' && <PatientDashboard caregiverMode={caregiverMode} />}
-          {activeView === 'doctor'    && <DoctorView />}
-          {activeView === 'chat'      && <ChatView />}
-          {activeView === 'labs'      && <LabsView />}
-          {activeView === 'family'    && <FamilyView />}
+          {activeView === 'doctor'    && (
+            <DoctorView 
+              selectedPatient={activePatientId} 
+              onPatientSelect={setActivePatientId} 
+            />
+          )}
+          {activeView === 'chat'      && (
+            <ChatView patientId={activePatientId || undefined} />
+          )}
+          {activeView === 'labs'      && <LabsView patientId={activePatientId || undefined} />}
+          {activeView === 'family'    && <FamilyView patientId={activePatientId || undefined} />}
         </main>
       </div>
     </div>

@@ -21,7 +21,7 @@ interface TopBarProps {
 
 export default function TopBar({ activeView, caregiverMode, onCaregiverToggle, userRole }: TopBarProps) {
   const [searchFocused, setSearchFocused] = useState(false);
-  const { data: patient } = usePatient();
+  const { data: patient } = usePatient(userRole === 'doctor' ? '' : undefined);
   const title = viewTitles[activeView];
 
   return (

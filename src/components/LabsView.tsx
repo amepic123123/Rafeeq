@@ -11,7 +11,6 @@ interface LabsViewProps {
   patientId?: string;
 }
 
-const DEFAULT_PATIENT_ID = 'JO-2026-KHL-4821';
 
 const CustomTooltip = ({ active, payload, label }: {
   active?: boolean;
@@ -31,21 +30,13 @@ const CustomTooltip = ({ active, payload, label }: {
   return null;
 };
 
-const activityData = [
-  { day: 'السبت', steps: 4200 },
-  { day: 'الأحد', steps: 5100 },
-  { day: 'الإثنين', steps: 4800 },
-  { day: 'الثلاثاء', steps: 6420 },
-  { day: 'الأربعاء', steps: 5900 },
-  { day: 'الخميس', steps: 7200 },
-  { day: 'الجمعة', steps: 4500 },
-];
+// activityData should come from API in the future
+const activityData: any[] = [];
 
 export default function LabsView({ patientId }: LabsViewProps = {}) {
-  const targetId = patientId || DEFAULT_PATIENT_ID;
-  const { data: hba1cData, loading: lHba1c } = useHbA1cHistory(targetId, 7);
-  const { data: bpData,    loading: lBp }    = useBloodPressureHistory(targetId, 7);
-  const { data: medications, loading: lMeds } = useMedications(targetId);
+  const { data: hba1cData, loading: lHba1c } = useHbA1cHistory(patientId, 7);
+  const { data: bpData,    loading: lBp }    = useBloodPressureHistory(patientId, 7);
+  const { data: medications, loading: lMeds } = useMedications(patientId);
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto" dir="rtl">
@@ -127,8 +118,8 @@ export default function LabsView({ patientId }: LabsViewProps = {}) {
             <p className="text-xs mt-0.5" style={{ color: '#8FA89B', fontFamily: "'IBM Plex Sans Arabic'" }}>معدل الخطوات اليومي · الهدف: 6,000 خطوة</p>
           </div>
           <div className="text-left">
-            <div className="text-lg font-bold" style={{ color: '#2D6A4F', fontFamily: "'Inter'" }}>6,420</div>
-            <div className="text-[10px]" style={{ color: '#22C55E' }}>+12% عن الأسبوع الماضي</div>
+            <div className="text-lg font-bold" style={{ color: '#2D6A4F', fontFamily: "'Inter'" }}>NaN</div>
+            <div className="text-[10px]" style={{ color: '#22C55E' }}>NaN</div>
           </div>
         </div>
 

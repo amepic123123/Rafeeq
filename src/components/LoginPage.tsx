@@ -39,26 +39,29 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     try {
       if (roleOverride) {
         // Fast-path for demo buttons
-        const demoId = roleOverride === 'doctor' ? '1111111111' : '9901234567';
+        const demoId = roleOverride === 'doctor' ? 'JO-1980-AHM-123' : 'JO-2026-KHL-4821';
         const demoPass = roleOverride === 'doctor' ? 'doctor123' : 'patient123';
         
         try {
           const res = await loginWithNationalId(demoId, demoPass);
           localStorage.setItem('rafeeq_token', res.access_token);
         } catch (err) {
-          console.warn("Backend auth failed or unreachable, falling back to local demo mode", err);
+          console.warn("Backend auth failed or unreachable", err);
         }
+        localStorage.setItem('rafeeq_nationalId', demoId);
         onLogin(roleOverride);
       } else {
         // Real user credentials login
         if (mode === 'credentials') {
           const res = await loginWithNationalId(nationalId, password);
           localStorage.setItem('rafeeq_token', res.access_token);
-          // For now, if we don't decode the JWT, we assume patient if they use credentials, unless we check nationalId
-          const isDoctor = nationalId === '1111111111';
+          localStorage.setItem('rafeeq_nationalId', nationalId);
+          const isDoctor = nationalId === 'JO-1980-AHM-123';
           onLogin(isDoctor ? 'doctor' : 'patient');
         } else {
           // Sanad mock
+          const mockSanadId = 'JO-2026-KHL-4821';
+          localStorage.setItem('rafeeq_nationalId', mockSanadId);
           setTimeout(() => onLogin('patient'), 1500);
         }
       }

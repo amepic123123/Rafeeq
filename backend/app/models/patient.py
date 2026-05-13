@@ -21,6 +21,7 @@ class PatientProfile(Base):
     medications = relationship("Medication", back_populates="patient")
     allergies = relationship("Allergy", back_populates="patient")
     lab_results = relationship("LabResult", back_populates="patient")
+    vitals = relationship("Vitals", back_populates="patient")
 
 class Condition(Base):
     __tablename__ = "conditions"
@@ -69,3 +70,15 @@ class LabResult(Base):
     tested_at = Column(DateTime, default=func.now())
     
     patient = relationship("PatientProfile", back_populates="lab_results")
+
+class Vitals(Base):
+    __tablename__ = "vitals"
+    
+    id = Column(String, primary_key=True, default=generate_uuid)
+    patient_id = Column(String, ForeignKey("patient_profiles.id"))
+    heart_rate = Column(Float, nullable=True)
+    systolic_bp = Column(Float, nullable=True)
+    diastolic_bp = Column(Float, nullable=True)
+    recorded_at = Column(DateTime, default=func.now())
+    
+    patient = relationship("PatientProfile", back_populates="vitals")

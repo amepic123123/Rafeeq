@@ -31,9 +31,10 @@ class RAGService:
         if not any(c.name == self.collection_name for c in collections.collections):
             return "No medical history available yet."
 
-        search_result = await self.qdrant.search(
+        print(f"DEBUG: Retrieving context for patient_id='{patient_id}'")
+        search_result = await self.qdrant.query_points(
             collection_name=self.collection_name,
-            query_vector=query_vector,
+            query=query_vector,
             query_filter=rest.Filter(
                 must=[
                     rest.FieldCondition(
@@ -45,7 +46,8 @@ class RAGService:
             limit=5
         )
         
-        context = "\n".join([hit.payload.get("raw_text", "") for hit in search_result])
+        context = "\n".join([hit.payload.get("raw_text", "") for hit in search_result.points])
+        print(f"DEBUG: Found {len(search_result.points)} context hits. Context length: {len(context)}")
         return context
 
     async def generate_response(self, patient_id: str, query: str, session_id: str) -> str:

@@ -1,15 +1,18 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useChatHistory, useSuggestedPrompts, useSendMessage, Skeleton } from '@/lib/hooks';
+import { useChatHistory, useSuggestedPrompts, useSendMessage, Skeleton, getCurrentPatientId } from '@/lib/hooks';
 import type { ChatMessage } from '@/lib/types';
 
-const PATIENT_ID = 'JO-2026-KHL-4821';
+interface ChatViewProps {
+  patientId?: string;
+}
 
-export default function ChatView() {
-  const { data: initialMessages, loading: lHistory } = useChatHistory(PATIENT_ID);
-  const { data: prompts,          loading: lPrompts  } = useSuggestedPrompts(PATIENT_ID);
-  const { send, isSending }                            = useSendMessage(PATIENT_ID);
+export default function ChatView({ patientId: propPatientId }: ChatViewProps) {
+  const patientId = propPatientId || getCurrentPatientId();
+  const { data: initialMessages, loading: lHistory } = useChatHistory(patientId);
+  const { data: prompts,          loading: lPrompts  } = useSuggestedPrompts(patientId);
+  const { send, isSending }                            = useSendMessage(patientId);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput]       = useState('');

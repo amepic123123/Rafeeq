@@ -1,13 +1,26 @@
 'use client';
 
-import { useRef, useCallback, useState } from 'react';
-import { useRiskFlags, useHakeemHistory, usePrescriptionAnalysis, Skeleton, usePatient, useHealthScore } from '@/lib/hooks';
+import { useRef, useCallback, useState, useEffect } from 'react';
+import { useRiskFlags, useHakeemHistory, usePrescriptionAnalysis, Skeleton, usePatient, useHealthScore, useRecentPatients, addRecentPatient } from '@/lib/hooks';
 import LabsView from '@/components/LabsView';
 
-export default function DoctorView() {
+interface DoctorViewProps {
+  selectedPatient?: string | null;
+  onPatientSelect?: (id: string | null) => void;
+}
+
+export default function DoctorView({ selectedPatient: propSelectedPatient, onPatientSelect }: DoctorViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<string | null>(propSelectedPatient || null);
   const [innerTab, setInnerTab] = useState<'overview' | 'labs' | 'ai'>('overview');
+  
+  // Sync internal state with external prop
+  useEffect(() => {
+    if (propSelectedPatient !== undefined) {
+      setSelectedPatient(propSelectedPatient);
+    }
+  }, [propSelectedPatient]);
+
   const [symptoms, setSymptoms] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
@@ -17,14 +30,22 @@ export default function DoctorView() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: patient, loading: lPatient } = usePatient(selectedPatient || undefined);
-  const { data: health, loading: lHealth } = useHealthScore(selectedPatient || undefined);
+  const { data: patient, loading: lPatient, error: pError } = usePatient(selectedPatient || '');
+  const { data: health, loading: lHealth } = useHealthScore(selectedPatient || '');
 
-  const { data: riskFlags,     loading: lRisk }    = useRiskFlags(selectedPatient || undefined);
-  const { data: hakeemHistory, loading: lHakeem }  = useHakeemHistory(selectedPatient || undefined);
+  const { data: riskFlags,     loading: lRisk }    = useRiskFlags(selectedPatient || '');
+  const { data: hakeemHistory, loading: lHakeem }  = useHakeemHistory(selectedPatient || '');
+  const { data: recentPatients, loading: lRecent } = useRecentPatients();
   const {
     result, isScanning, progress, analyze, reset,
   } = usePrescriptionAnalysis(selectedPatient || '');
+
+  // Update browser history (cache) when a patient is successfully loaded
+  useEffect(() => {
+    if (patient && selectedPatient) {
+      addRecentPatient(patient);
+    }
+  }, [patient, selectedPatient]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -42,13 +63,16 @@ export default function DoctorView() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      setSelectedPatient(searchQuery.trim());
+    const query = searchQuery.trim();
+    if (query) {
+      setSelectedPatient(query);
+      if (onPatientSelect) onPatientSelect(query);
     }
   };
 
   const handleBack = () => {
     setSelectedPatient(null);
+    if (onPatientSelect) onPatientSelect(null);
     setSearchQuery('');
     setInnerTab('overview');
     setSymptoms('');
@@ -56,14 +80,22 @@ export default function DoctorView() {
     reset();
   };
 
-  const handleAiConsult = () => {
-    if (!symptoms.trim()) return;
+  const handleAiConsult = async () => {
+    if (!symptoms.trim() || !selectedPatient) return;
     setIsAiLoading(true);
     setAiSuggestion(null);
-    setTimeout(() => {
+    try {
+      const response = await api.sendChatMessage(selectedPatient, { 
+        patientId: selectedPatient, 
+        message: `DOCTOR_CONSULT: ${symptoms}`, 
+        lang: 'ar' 
+      });
+      setAiSuggestion(response.textAr);
+    } catch (err) {
+      setAiSuggestion("حدث خطأ أثناء الاتصال بنظام الذكاء الاصطناعي.");
+    } finally {
       setIsAiLoading(false);
-      setAiSuggestion(`بناءً على الأعراض الحالية ("${symptoms}") وتاريخ المريض الطبي (ارتفاع ضغط الدم، سكري من النوع الثاني)، يُنصح بتجنب الأدوية التي ترفع ضغط الدم مثل مضادات الاحتقان الموضعية. \n\nالتوصية المبدئية:\n1. Paracetamol 500mg للتحكم بالألم والحرارة.\n2. إجراء تحليل دم شامل (CBC) للتحقق من وجود التهاب.\nيرجى مراجعة التفاعلات الدوائية المحتملة مع "Metformin" و "Amlodipine" المسجلة في ملف المريض.`);
-    }, 2500);
+    }
   };
 
   const handleMicrophoneClick = () => {
@@ -176,39 +208,67 @@ export default function DoctorView() {
         </div>
 
         {/* Recent Patients */}
-        <div className="fade-up-3">
-          <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            المرضى المراجعين حديثاً
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[
-              { id: 'JO-2026-KHL-4821', name: 'خالد العمري', age: 74, lastVisit: 'اليوم، 08:30 ص', status: 'مراجعة أدوية' },
-              { id: 'JO-2025-SRA-9923', name: 'سارة أحمد', age: 42, lastVisit: 'أمس', status: 'تحاليل مخبرية' },
-              { id: 'JO-2024-MHD-1102', name: 'محمد النجار', age: 58, lastVisit: 'منذ 3 أيام', status: 'متابعة سكري' },
-            ].map((p, i) => (
-              <div
-                key={p.id}
-                onClick={() => setSelectedPatient(p.id)}
-                className={`glass-card p-5 cursor-pointer hover:-translate-y-1 hover:shadow-md transition-all duration-300 fade-up-${i+4}`}
-              >
-                <div className="flex items-center gap-3 mb-4 border-b pb-3 border-emerald-50">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-inner" style={{ background: 'linear-gradient(135deg, #40916C, #74C69D)' }}>
-                    {p.name.charAt(0)}
+        {(!lRecent && (!recentPatients || recentPatients.length === 0)) ? null : (
+          <div className="fade-up-3">
+            <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              المرضى المراجعين حديثاً
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {lRecent
+                ? [1, 2, 3].map(i => <Skeleton key={i} h="h-40" />)
+                : (recentPatients || []).map((p, i) => (
+                  <div
+                    key={p.id}
+                    onClick={() => setSelectedPatient(p.id)}
+                    className={`glass-card p-5 cursor-pointer hover:-translate-y-1 hover:shadow-md transition-all duration-300 fade-up-${i+4}`}
+                  >
+                    <div className="flex items-center gap-3 mb-4 border-b pb-3 border-emerald-50">
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-inner" style={{ background: 'linear-gradient(135deg, #40916C, #74C69D)' }}>
+                        {p.initial}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-sm" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>{p.name}</div>
+                        <div className="text-[11px]" style={{ color: '#8FA89B', fontFamily: "'Inter'" }}>{p.id}</div>
+                      </div>
+                    </div>
+                    <div className="text-xs space-y-2" style={{ color: '#4A6357', fontFamily: "'IBM Plex Sans Arabic'" }}>
+                      <div className="flex justify-between items-center"><span className="text-gray-400">العمر:</span> <span className="font-medium">{p.age} سنة</span></div>
+                      <div className="flex justify-between items-center"><span className="text-gray-400">آخر زيارة:</span> <span className="font-medium">{p.lastVisit}</span></div>
+                      <div className="flex justify-between items-center"><span className="text-gray-400">الحالة:</span> <span className="font-medium px-2 py-0.5 rounded-md" style={{ background: 'rgba(82,183,136,0.1)', color: '#2D6A4F' }}>{p.status}</span></div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-semibold text-sm" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>{p.name}</div>
-                    <div className="text-[11px]" style={{ color: '#8FA89B', fontFamily: "'Inter'" }}>{p.id}</div>
-                  </div>
-                </div>
-                <div className="text-xs space-y-2" style={{ color: '#4A6357', fontFamily: "'IBM Plex Sans Arabic'" }}>
-                  <div className="flex justify-between items-center"><span className="text-gray-400">العمر:</span> <span className="font-medium">{p.age} سنة</span></div>
-                  <div className="flex justify-between items-center"><span className="text-gray-400">آخر زيارة:</span> <span className="font-medium">{p.lastVisit}</span></div>
-                  <div className="flex justify-between items-center"><span className="text-gray-400">الحالة:</span> <span className="font-medium px-2 py-0.5 rounded-md" style={{ background: 'rgba(82,183,136,0.1)', color: '#2D6A4F' }}>{p.status}</span></div>
-                </div>
-              </div>
-            ))}
+                ))}
+            </div>
           </div>
+        )}
+      </div>
+    );
+  }
+
+  if (selectedPatient && !lPatient && (pError || !patient)) {
+    return (
+      <div className="p-6 max-w-6xl mx-auto" dir="rtl">
+        <button onClick={handleBack} className="flex items-center gap-1.5 text-xs font-semibold mb-6 transition-colors hover:text-emerald-700" style={{ color: '#52B788', fontFamily: "'IBM Plex Sans Arabic'" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M5 12l4-4M5 12l4 4"/></svg>
+          العودة للبحث
+        </button>
+        <div className="glass-card p-12 text-center fade-up-1">
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <h2 className="text-2xl font-bold mb-2" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>المريض غير موجود</h2>
+          <p className="text-gray-500 mb-8 max-w-md">
+            لم نتمكن من العثور على أي سجل للمريض صاحب الرقم الوطني: <span className="font-mono font-bold text-gray-800">{selectedPatient}</span>
+            {pError && <div className="mt-2 text-xs text-red-400 font-mono">Error: {pError}</div>}
+          </p>
+          <button
+            onClick={handleBack}
+            className="px-10 py-3 rounded-xl text-white font-semibold shadow-lg hover:opacity-90 active:scale-95 transition-all"
+            style={{ background: 'linear-gradient(135deg, #2D6A4F, #52B788)', fontFamily: "'IBM Plex Sans Arabic'" }}
+          >
+            جرب البحث مرة أخرى
+          </button>
         </div>
       </div>
     );
@@ -234,15 +294,15 @@ export default function DoctorView() {
         <div className="hidden md:flex items-center gap-4 bg-white p-3 rounded-2xl border border-emerald-50 shadow-sm">
           <div className="text-center px-3 border-l border-gray-100">
             <div className="text-[10px] text-gray-400 mb-0.5" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>العمر</div>
-            <div className="text-sm font-bold text-gray-800">{lPatient ? '-' : patient?.age}</div>
+            <div className="text-sm font-bold text-gray-800">{lPatient ? '-' : patient?.age || 'NaN'}</div>
           </div>
           <div className="text-center px-3 border-l border-gray-100">
             <div className="text-[10px] text-gray-400 mb-0.5" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>فصيلة الدم</div>
-            <div className="text-sm font-bold text-red-500">{lPatient ? '-' : patient?.bloodType}</div>
+            <div className="text-sm font-bold text-red-500">{lPatient ? '-' : patient?.bloodType || 'NaN'}</div>
           </div>
           <div className="text-center px-3">
             <div className="text-[10px] text-gray-400 mb-0.5" style={{ fontFamily: "'IBM Plex Sans Arabic'" }}>المؤشر الصحي</div>
-            <div className="text-sm font-bold" style={{ color: '#2D6A4F' }}>{lHealth ? '-' : health?.overall}/100</div>
+            <div className="text-sm font-bold" style={{ color: '#2D6A4F' }}>{lHealth ? '-' : health?.overall || 'NaN'}/100</div>
           </div>
         </div>
       </div>
