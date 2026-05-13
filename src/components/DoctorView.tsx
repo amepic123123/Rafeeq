@@ -2,6 +2,7 @@
 
 import { useRef, useCallback, useState, useEffect } from 'react';
 import { useRiskFlags, useHakeemHistory, usePrescriptionAnalysis, Skeleton, usePatient, useHealthScore, useRecentPatients, addRecentPatient } from '@/lib/hooks';
+import * as api from '@/lib/api';
 import LabsView from '@/components/LabsView';
 
 interface DoctorViewProps {
@@ -11,6 +12,8 @@ interface DoctorViewProps {
 
 export default function DoctorView({ selectedPatient: propSelectedPatient, onPatientSelect }: DoctorViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchStatus, setSearchStatus] = useState<'idle' | 'searching' | 'found' | 'not-found'>('idle');
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [selectedPatient, setSelectedPatient] = useState<string | null>(propSelectedPatient || null);
   const [innerTab, setInnerTab] = useState<'overview' | 'labs' | 'ai'>('overview');
   
@@ -61,12 +64,33 @@ export default function DoctorView({ selectedPatient: propSelectedPatient, onPat
   const levelClass = (level: string) => level === 'red' ? 'risk-red' : level === 'yellow' ? 'risk-yellow' : 'risk-green';
   const levelLabel = (level: string) => level === 'red' ? '🔴 خطر' : level === 'yellow' ? '🟡 تنبيه' : '🟢 آمن';
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     const query = searchQuery.trim();
-    if (query) {
-      setSelectedPatient(query);
-      if (onPatientSelect) onPatientSelect(query);
+    if (!query || searchStatus === 'searching') return;
+
+    setSearchStatus('searching');
+    setSearchError(null);
+
+    const startedAt = Date.now();
+    try {
+      await api.getPatient(query);
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < 600) {
+        await new Promise(resolve => setTimeout(resolve, 600 - elapsed));
+      }
+      setSearchStatus('found');
+      setTimeout(() => {
+        setSelectedPatient(query);
+        if (onPatientSelect) onPatientSelect(query);
+      }, 300);
+    } catch (err) {
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < 600) {
+        await new Promise(resolve => setTimeout(resolve, 600 - elapsed));
+      }
+      setSearchStatus('not-found');
+      setSearchError(err instanceof Error ? err.message : 'Unknown error');
     }
   };
 
@@ -74,6 +98,8 @@ export default function DoctorView({ selectedPatient: propSelectedPatient, onPat
     setSelectedPatient(null);
     if (onPatientSelect) onPatientSelect(null);
     setSearchQuery('');
+    setSearchStatus('idle');
+    setSearchError(null);
     setInnerTab('overview');
     setSymptoms('');
     setAiSuggestion(null);
@@ -201,10 +227,34 @@ export default function DoctorView({ selectedPatient: propSelectedPatient, onPat
               type="submit"
               className="px-8 rounded-l-xl text-white font-semibold transition-all hover:opacity-90 active:scale-95"
               style={{ background: 'linear-gradient(135deg, #2D6A4F, #52B788)', fontFamily: "'IBM Plex Sans Arabic'" }}
+              disabled={searchStatus === 'searching'}
             >
-              بحث
+              {searchStatus === 'searching' ? '...جارٍ البحث' : 'بحث'}
             </button>
           </form>
+
+          {searchStatus !== 'idle' && (
+            <div className="mt-6 text-center">
+              {searchStatus === 'searching' && (
+                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-emerald-50 text-emerald-800 text-sm font-semibold">
+                  <span className="w-4 h-4 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
+                  جاري البحث عن المريض...
+                </div>
+              )}
+              {searchStatus === 'found' && (
+                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-emerald-50 text-emerald-800 text-sm font-semibold">
+                  <span>✅</span>
+                  تم العثور على المريض، جارٍ فتح الملف...
+                </div>
+              )}
+              {searchStatus === 'not-found' && (
+                <div className="inline-flex flex-col items-center gap-1 px-4 py-2 rounded-2xl bg-red-50 text-red-700 text-sm font-semibold">
+                  <div>المريض غير موجود</div>
+                  <div className="text-[11px] text-red-400">{searchError || 'لم يتم العثور على سجل مطابق'}</div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Recent Patients */}
@@ -453,8 +503,8 @@ export default function DoctorView({ selectedPatient: propSelectedPatient, onPat
             <div className="space-y-2">
               {lHakeem
                 ? [1, 2, 3, 4].map(i => <Skeleton key={i} h="h-12" />)
-                : (hakeemHistory ?? []).map(h => (
-                    <div key={h.date} className="flex items-center gap-3 p-2.5 rounded-xl" style={{ background: 'rgba(45,106,79,0.04)', border: '1px solid rgba(45,106,79,0.08)' }}>
+                : (hakeemHistory ?? []).map((h, i) => (
+                  <div key={`${h.date}-${h.event}-${i}`} className="flex items-center gap-3 p-2.5 rounded-xl" style={{ background: 'rgba(45,106,79,0.04)', border: '1px solid rgba(45,106,79,0.08)' }}>
                       <div className="text-[10px] px-2 py-1 rounded-lg text-center shrink-0" style={{ background: 'rgba(45,106,79,0.10)', color: '#2D6A4F', fontFamily: "'Inter'", minWidth: 68 }}>{h.date}</div>
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-medium truncate" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>{h.event}</div>
