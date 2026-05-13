@@ -1,19 +1,4 @@
-# RAFEEQ // HACKATHON MVP
-
-> **Arabic-first AI health copilot** for patients, families, and doctors — built as a fast prototype on top of **Jordan's Hakeem ecosystem**.
-
-Rafeeq is the kind of product you build in a hackathon when the brief is:
-
-- make healthcare data feel human
-- make AI feel clinically useful
-- make the interface feel local, Arabic-first, and alive
-- make the demo work fast
-
-This repo contains the **Next.js frontend** for that prototype. It talks to the FastAPI backend, renders patient and doctor experiences, and turns health records into a polished demo with chat, labs, alerts, family tracking, and prescription review flows.
-
----
-
-## What this prototype does
+# RAFEEQ
 
 ### Patient mode
 - **Dashboard** with health score, quick stats, medications, and AI insight cards
