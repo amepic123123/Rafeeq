@@ -111,6 +111,9 @@ export default function TopBar({ activeView, caregiverMode, onCaregiverToggle, u
         id="profile-switcher"
         onClick={() => {
           localStorage.removeItem('rafeeq_userRole');
+          localStorage.removeItem('rafeeq_active_patient_id');
+          localStorage.removeItem('rafeeq_nationalId');
+          localStorage.removeItem('rafeeq_token');
           window.location.href = '/';
         }}
         title="تسجيل الخروج (Logout)"

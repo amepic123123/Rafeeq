@@ -12,10 +12,16 @@ import type {
   SuggestedPrompt, FamilyMember, FamilySummary, PrescriptionAnalysisResult,
 } from './types';
 
+// Add a global in-memory cache to prevent reloading when switching tabs
+const globalCache = new Map<string, any>();
+
 // ── Generic fetch hook factory ────────────────────────────────────────────────
-function useFetch<T>(fetcher: () => Promise<T>, skip = false): FetchState<T> {
-  const [state, setState] = useState<FetchState<T>>({
-    data: null, loading: !skip, error: null,
+function useFetch<T>(cacheKey: string, fetcher: () => Promise<T>, skip = false): FetchState<T> {
+  const [state, setState] = useState<FetchState<T>>(() => {
+    if (!skip && globalCache.has(cacheKey)) {
+      return { data: globalCache.get(cacheKey) as T, loading: false, error: null };
+    }
+    return { data: null, loading: !skip, error: null };
   });
 
   const fetcherRef = useRef(fetcher);
@@ -27,15 +33,26 @@ function useFetch<T>(fetcher: () => Promise<T>, skip = false): FetchState<T> {
       return;
     }
 
+    // Check cache again in case it was populated by another component
+    if (globalCache.has(cacheKey)) {
+      setState({ data: globalCache.get(cacheKey) as T, loading: false, error: null });
+      return;
+    }
+
     let cancelled = false;
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     fetcherRef.current()
-      .then(data => { if (!cancelled) setState({ data, loading: false, error: null }); })
+      .then(data => { 
+        if (!cancelled) {
+          globalCache.set(cacheKey, data);
+          setState({ data, loading: false, error: null }); 
+        }
+      })
       .catch(err  => { if (!cancelled) setState({ data: null, loading: false, error: String(err) }); });
 
     return () => { cancelled = true; };
-  }, [skip]); // Only re-run if skip changes, otherwise relies on component unmount/remount.
+  }, [skip, cacheKey]);
 
   return state;
 }
@@ -53,23 +70,23 @@ export const getCurrentPatientId = () => {
 };
 
 export function usePatient(patientId: string = getCurrentPatientId()): FetchState<Patient> {
-  return useFetch(() => api.getPatient(patientId), !patientId);
+  return useFetch(`patient-${patientId}`, () => api.getPatient(patientId), !patientId);
 }
 
 export function useHealthScore(patientId: string = getCurrentPatientId()): FetchState<HealthScoreData> {
-  return useFetch(() => api.getHealthScore(patientId), !patientId);
+  return useFetch(`healthScore-${patientId}`, () => api.getHealthScore(patientId), !patientId);
 }
 
 export function useQuickStats(patientId: string = getCurrentPatientId()): FetchState<QuickStats> {
-  return useFetch(() => api.getQuickStats(patientId), !patientId);
+  return useFetch(`quickStats-${patientId}`, () => api.getQuickStats(patientId), !patientId);
 }
 
 export function useInsights(patientId: string = getCurrentPatientId()): FetchState<Insight[]> {
-  return useFetch(() => api.getInsights(patientId), !patientId);
+  return useFetch(`insights-${patientId}`, () => api.getInsights(patientId), !patientId);
 }
 
 export function useMedications(patientId: string = getCurrentPatientId()): FetchState<Medication[]> {
-  return useFetch(() => api.getMedications(patientId), !patientId);
+  return useFetch(`medications-${patientId}`, () => api.getMedications(patientId), !patientId);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -77,11 +94,11 @@ export function useMedications(patientId: string = getCurrentPatientId()): Fetch
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function useHbA1cHistory(patientId: string = getCurrentPatientId(), months = 7): FetchState<HbA1cPoint[]> {
-  return useFetch(() => api.getHbA1cHistory(patientId, months), !patientId);
+  return useFetch(`hba1c-${patientId}-${months}`, () => api.getHbA1cHistory(patientId, months), !patientId);
 }
 
 export function useBloodPressureHistory(patientId: string = getCurrentPatientId(), days = 7): FetchState<BPPoint[]> {
-  return useFetch(() => api.getBloodPressureHistory(patientId, days), !patientId);
+  return useFetch(`bp-${patientId}-${days}`, () => api.getBloodPressureHistory(patientId, days), !patientId);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -89,11 +106,11 @@ export function useBloodPressureHistory(patientId: string = getCurrentPatientId(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function useRiskFlags(patientId: string = getCurrentPatientId()): FetchState<RiskFlag[]> {
-  return useFetch(() => api.getRiskFlags(patientId), !patientId);
+  return useFetch(`riskFlags-${patientId}`, () => api.getRiskFlags(patientId), !patientId);
 }
 
 export function useHakeemHistory(patientId: string = getCurrentPatientId(), limit = 10): FetchState<HakeemEntry[]> {
-  return useFetch(() => api.getHakeemHistory(patientId, limit), !patientId);
+  return useFetch(`hakeemHistory-${patientId}-${limit}`, () => api.getHakeemHistory(patientId, limit), !patientId);
 }
 
 
@@ -159,11 +176,11 @@ export function addRecentPatient(patient: any) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function useChatHistory(patientId: string = getCurrentPatientId()): FetchState<ChatMessage[]> {
-  return useFetch(() => api.getChatHistory(patientId), !patientId);
+  return useFetch(`chatHistory-${patientId}`, () => api.getChatHistory(patientId), !patientId);
 }
 
 export function useSuggestedPrompts(patientId: string = getCurrentPatientId()): FetchState<SuggestedPrompt[]> {
-  return useFetch(() => api.getSuggestedPrompts(patientId), !patientId);
+  return useFetch(`suggestedPrompts-${patientId}`, () => api.getSuggestedPrompts(patientId), !patientId);
 }
 
 /**
@@ -211,11 +228,11 @@ export function useSendMessage(patientId: string) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function useFamilyMembers(patientId?: string): FetchState<FamilyMember[]> {
-  return useFetch(() => api.getFamilyMembers(patientId!), !patientId);
+  return useFetch(`familyMembers-${patientId}`, () => api.getFamilyMembers(patientId!), !patientId);
 }
 
 export function useFamilySummary(patientId?: string): FetchState<FamilySummary> {
-  return useFetch(() => api.getFamilySummary(patientId!), !patientId);
+  return useFetch(`familySummary-${patientId}`, () => api.getFamilySummary(patientId!), !patientId);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

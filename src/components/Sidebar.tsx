@@ -63,15 +63,24 @@ export default function Sidebar({ activeView, onViewChange, userRole }: SidebarP
           alt="Rafeeq Logo"
           className="w-12 h-12 object-contain rounded-xl shadow-sm"
         />
-        <div>
-          <div className="font-bold text-base" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>
+        <div className="flex flex-col justify-center">
+          <div className="font-black text-2xl" style={{ 
+            background: 'linear-gradient(135deg, #1A2B22 0%, #40916C 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            color: 'transparent',
+            fontFamily: "'IBM Plex Sans Arabic'",
+            letterSpacing: '-0.02em',
+            lineHeight: 1.1
+          }}>
             رفيق
           </div>
-          <div className="text-xs" style={{ color: '#8FA89B', fontFamily: "'Inter'" }}>
+          <div className="text-[10px] uppercase font-bold tracking-[0.1em] mt-0.5" style={{ color: '#52B788', fontFamily: "'Inter'" }}>
             Powered by Hakeem
           </div>
         </div>
-        <span className="hakeem-badge mr-auto">✓ حكيم</span>
+
       </div>
 
       {/* Navigation */}

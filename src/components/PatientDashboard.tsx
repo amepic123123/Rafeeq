@@ -44,12 +44,7 @@ export default function PatientDashboard({ caregiverMode }: PatientDashboardProp
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: 'rgba(82,183,136,0.12)', color: '#2D6A4F' }}>
-                نبض صحي مباشر
-              </span>
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            </div>
+
 
             {lPatient ? (
               <Skeleton h="h-7" className="w-48 mb-2" />
@@ -78,9 +73,7 @@ export default function PatientDashboard({ caregiverMode }: PatientDashboardProp
             </div>
           </div>
 
-          <div className="absolute top-4 left-4">
-            <span className="hakeem-badge text-[10px]">✓ مُتحقق عبر حكيم</span>
-          </div>
+
         </div>
 
         {/* Health Score Gauge */}

@@ -49,6 +49,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           console.warn("Backend auth failed or unreachable", err);
         }
         localStorage.setItem('rafeeq_nationalId', demoId);
+        localStorage.removeItem('rafeeq_active_patient_id');
         onLogin(roleOverride);
       } else {
         // Real user credentials login
@@ -56,12 +57,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           const res = await loginWithNationalId(nationalId, password);
           localStorage.setItem('rafeeq_token', res.access_token);
           localStorage.setItem('rafeeq_nationalId', nationalId);
+          localStorage.removeItem('rafeeq_active_patient_id');
           const isDoctor = nationalId === '1111111111';
           onLogin(isDoctor ? 'doctor' : 'patient');
         } else {
           // Sanad mock
           const mockSanadId = 'JO-2026-KHL-4821';
           localStorage.setItem('rafeeq_nationalId', mockSanadId);
+          localStorage.removeItem('rafeeq_active_patient_id');
           setTimeout(() => onLogin('patient'), 1500);
         }
       }
@@ -223,7 +226,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   fontFamily: "'IBM Plex Sans Arabic'",
                 }}
               >
-                🪪 سند الأردن
+                <span dir="ltr">🪪</span> سند الأردن
               </button>
               <button
                 onClick={() => setMode('credentials')}
@@ -235,7 +238,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   fontFamily: "'IBM Plex Sans Arabic'",
                 }}
               >
-                🔑 رقم وطني
+                <span dir="ltr">🔑</span> رقم وطني
               </button>
             </div>
 
@@ -307,12 +310,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                       value={nationalId}
                       onChange={e => setNationalId(e.target.value)}
                       placeholder="أدخل الرقم الوطني"
-                      className="login-input pr-11"
+                      className="login-input"
                       style={{ fontFamily: "'IBM Plex Sans Arabic'" }}
                       dir="rtl"
                       autoComplete="username"
                     />
-                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                    <div className="absolute top-1/2 -translate-y-1/2" style={{ insetInlineEnd: '14px', pointerEvents: 'none' }}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8FA89B" strokeWidth="2">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                         <circle cx="12" cy="7" r="4" />
@@ -332,20 +335,23 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       placeholder="أدخل كلمة المرور"
-                      className="login-input pr-11 pl-11"
-                      style={{ fontFamily: "'IBM Plex Sans Arabic'" }}
+                      className="login-input"
+                      style={{ fontFamily: "'IBM Plex Sans Arabic'", paddingInlineStart: '44px' }}
                       dir="rtl"
                       autoComplete="current-password"
                     />
-                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                    {/* Lock icon — always on the inline-end (right in RTL) */}
+                    <div className="absolute top-1/2 -translate-y-1/2" style={{ insetInlineEnd: '14px', pointerEvents: 'none' }}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8FA89B" strokeWidth="2">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                         <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                       </svg>
                     </div>
+                    {/* Eye toggle — on the inline-start (left in RTL) */}
                     <button
                       type="button"
-                      className="absolute left-3.5 top-1/2 -translate-y-1/2 cursor-pointer"
+                      className="absolute top-1/2 -translate-y-1/2 cursor-pointer"
+                      style={{ insetInlineStart: '14px' }}
                       onClick={() => setShowPassword(!showPassword)}
                       tabIndex={-1}
                     >

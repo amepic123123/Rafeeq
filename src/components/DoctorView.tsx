@@ -678,17 +678,51 @@ export default function DoctorView({ selectedPatient: propSelectedPatient, onPat
                   <span className="text-sm">🤖</span>
                   <span className="font-bold text-sm" style={{ color: '#2D6A4F', fontFamily: "'IBM Plex Sans Arabic'" }}>توصيات رافيق AI:</span>
                 </div>
-                <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>
-                  {aiSuggestion}
-                </p>
-                <div className="mt-4 flex gap-2">
-                  <button className="px-4 py-2 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90" style={{ background: '#52B788', fontFamily: "'IBM Plex Sans Arabic'" }}>
-                    إضافة للوصفة
-                  </button>
-                  <button className="px-4 py-2 rounded-lg text-xs font-semibold transition-all hover:bg-gray-100" style={{ color: '#4A6357', border: '1px solid #E5E7EB', fontFamily: "'IBM Plex Sans Arabic'" }}>
-                    تعديل الأعراض
-                  </button>
+                <div className="text-sm leading-relaxed" style={{ color: '#1A2B22', fontFamily: "'IBM Plex Sans Arabic'" }}>
+                  {aiSuggestion.split('\n').map((line, i) => {
+                    if (!line.trim()) return <div key={i} className="h-2" />;
+                    
+                    const headerMatch = line.match(/^(#{1,3})\s+(.*)$/);
+                    if (headerMatch) {
+                      const level = headerMatch[1].length;
+                      return (
+                        <h4 key={i} className={`font-bold mt-5 mb-2 text-emerald-800 ${level === 1 ? 'text-lg' : level === 2 ? 'text-base' : 'text-sm'}`}>
+                          {headerMatch[2]}
+                        </h4>
+                      );
+                    }
+                    
+                    const parts = line.split(/(\*\*.*?\*\*)/g);
+                    const formattedParts = parts.map((part, j) => {
+                      if (part.startsWith('**') && part.endsWith('**')) {
+                        return <strong key={j} className="font-bold" style={{ color: '#064E3B' }}>{part.slice(2, -2)}</strong>;
+                      }
+                      return <span key={j}>{part}</span>;
+                    });
+                    
+                    if (line.trim().startsWith('-')) {
+                      const cleanParts = formattedParts.map((p, k) => {
+                        if (k === 0 && p.props && typeof p.props.children === 'string') {
+                          return <span key={k}>{p.props.children.replace(/^-?\s*/, '')}</span>;
+                        }
+                        return p;
+                      });
+                      return (
+                        <div key={i} className="flex items-start gap-2.5 mb-2 mr-3">
+                          <span className="mt-2 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                          <span className="flex-1">{cleanParts}</span>
+                        </div>
+                      );
+                    }
+                    
+                    return (
+                      <div key={i} className={`mb-2.5 ${line.includes('**') ? 'mt-3' : ''}`}>
+                        {formattedParts}
+                      </div>
+                    );
+                  })}
                 </div>
+
               </div>
             )}
           </div>

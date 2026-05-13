@@ -1,6 +1,26 @@
 version: '3.8'
 
 services:
+  backend:
+    build: .
+    container_name: rafeeq_backend
+    environment:
+      POSTGRES_SERVER: db
+      POSTGRES_USER: rafeeq
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: rafeeq_db
+      POSTGRES_PORT: 5432
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+
   db:
     image: postgres:16-alpine
     container_name: rafeeq_db

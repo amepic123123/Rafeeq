@@ -368,7 +368,10 @@ body {
   background: rgba(248, 244, 240, 0.6);
   border: 1.5px solid rgba(82, 183, 136, 0.20);
   border-radius: 16px;
-  padding: 14px 18px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  padding-inline-start: 18px;
+  padding-inline-end: 44px; /* always reserve space on the icon side */
   font-size: 14px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
